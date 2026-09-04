@@ -1,0 +1,16 @@
+id,name,country,unlocode,latitude,longitude,status
+1,Paradip,India,INPRT,20.2644,86.6781,ACTIVE
+2,Dhamra,India,INDHM,20.8042,86.9744,ACTIVE
+3,Visakhapatnam,India,INVTZ,17.6868,83.2185,ACTIVE
+4,Haldia,India,INHAL,22.0232,88.0644,ACTIVE
+5,Mundra,India,INMUN,22.7388,69.7042,ACTIVE
+6,Port Hedland,Australia,AUPHE,-20.3167,118.576,ACTIVE
+7,Newcastle,Australia,AUNCW,-32.9267,151.7789,ACTIVE
+8,Hay Point,Australia,AUHAY,-21.2833,149.3,ACTIVE
+9,Samarinda,Indonesia,IDSMR,-0.5022,117.1536,ACTIVE
+10,Banjarmasin,Indonesia,IDBDJ,-3.3194,114.5908,ACTIVE
+11,Richards Bay,South Africa,ZARCB,-28.8,32.0833,ACTIVE
+12,Tubarao,Brazil,BRTUB,-20.2889,-40.2458,ACTIVE
+13,Singapore,Singapore,SGSIN,1.2903,103.852,ACTIVE
+14,Rotterdam,Netherlands,NLRTM,51.9244,4.4777,ACTIVE
+15,Qingdao,China,CNTAO,36.0671,120.3826,ACTIVE

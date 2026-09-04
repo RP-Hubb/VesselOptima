@@ -1,0 +1,11 @@
+id,port_id,terminal,berth,rule_type,value,unit,condition,effective_from,effective_to,source_url,source_document,verifier,verified_at,quality_status,version
+1,1,Central Quay,CQ-1/CQ-2,MAX_DRAFT,14.5,M,Tide independent,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Authority Handbook,Chief Marine Surveyor,2024-01-01 00:00:00,VALID,1
+2,1,Central Quay,CQ-1/CQ-2,MAX_LOA,230.0,M,Daylight navigation for LOA > 225m,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Authority Handbook,Chief Marine Surveyor,2024-01-01 00:00:00,VALID,1
+3,1,Central Quay,CQ-1/CQ-2,MAX_BEAM,33.0,M,Panamax / Kamsarmax beam limit,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Authority Handbook,Chief Marine Surveyor,2024-01-01 00:00:00,VALID,1
+4,2,Bulk Berth 1,BB-1,MAX_DRAFT,18.0,M,Capesize iron ore / coal berth,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Authority Gazette,Harbour Master,2024-01-01 00:00:00,VALID,1
+5,2,Bulk Berth 1,BB-1,MAX_LOA,305.0,M,Unrestricted,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Authority Gazette,Harbour Master,2024-01-01 00:00:00,VALID,1
+6,3,Outer Harbour,OB-1,MAX_DRAFT,18.1,M,Capesize iron ore berth,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Port Rules,Marine Dept,2024-01-01 00:00:00,VALID,1
+7,4,Haldia Dock Complex,Berth 4A,MAX_DRAFT,8.5,M,River Hooghly tidal draft; strictly Handysize,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Pilotage Advisory,River Pilots Assoc,2024-01-01 00:00:00,VALID,1
+8,6,Nelson Point,Berth A,MAX_DRAFT,19.5,M,Tidal sailing window required for draft > 17.5m,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Pilbara Port Authority Notice,Port Operations,2024-01-01 00:00:00,VALID,1
+9,7,PWCS Kooragang,K4,MAX_DRAFT,15.2,M,Tidal assistance for deep draft,2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Harbour Master Direction,Port Authority NSW,2024-01-01 00:00:00,VALID,1
+10,9,Muara Berau Anchorage,Anchorage Point 2,MAX_DRAFT,11.5,M,"Floating crane barge loading, geared vessels preferred",2024-01-01 00:00:00,2027-12-31 23:59:59,SYNTHETIC_BERTH_SCHEDULE,Indonesian Port Directory,Harbour Master Samarinda,2024-01-01 00:00:00,VALID,1

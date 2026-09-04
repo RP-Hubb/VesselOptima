@@ -1,0 +1,13 @@
+id,name,origin_port_id,destination_port_id,distance_nm,distance_source,version
+1,Port Hedland to Paradip,6,1,3920.0,SYNTHETIC_VOYAGE_TABLE,1
+2,Port Hedland to Dhamra,6,2,3950.0,SYNTHETIC_VOYAGE_TABLE,1
+3,Newcastle to Paradip,7,1,5250.0,SYNTHETIC_VOYAGE_TABLE,1
+4,Newcastle to Visakhapatnam,7,3,5100.0,SYNTHETIC_VOYAGE_TABLE,1
+5,Samarinda to Paradip,9,1,2740.0,SYNTHETIC_VOYAGE_TABLE,1
+6,Samarinda to Haldia,9,4,2710.0,SYNTHETIC_VOYAGE_TABLE,1
+7,Richards Bay to Paradip,11,1,4620.0,SYNTHETIC_VOYAGE_TABLE,1
+8,Tubarao to Qingdao,12,15,11050.0,SYNTHETIC_VOYAGE_TABLE,1
+9,Tubarao to Paradip,12,1,9200.0,SYNTHETIC_VOYAGE_TABLE,1
+10,Paradip to Visakhapatnam (Coastal Reposition),1,3,190.0,SYNTHETIC_VOYAGE_TABLE,1
+11,Paradip to Dhamra (Coastal Reposition),1,2,55.0,SYNTHETIC_VOYAGE_TABLE,1
+12,Singapore to Paradip (Bunker Reposition),13,1,1620.0,SYNTHETIC_VOYAGE_TABLE,1

@@ -1,0 +1,9 @@
+id,vessel_profile_id,available_at,location_port_id,location_description,source,confidence,data_kind
+1,1,2026-09-10 12:00:00,1,Discharged Paradip anchorage,SYNTHETIC_AGENT_REPORT,0.98,SYNTHETIC
+2,2,2026-09-12 08:00:00,4,Haldia berth waiting completion,SYNTHETIC_AGENT_REPORT,0.95,SYNTHETIC
+3,5,2026-09-14 00:00:00,13,Singapore bunkering completed,SYNTHETIC_AGENT_REPORT,0.99,SYNTHETIC
+4,6,2026-09-08 18:00:00,1,"Paradip discharged, awaiting orders",SYNTHETIC_AGENT_REPORT,0.97,SYNTHETIC
+5,10,2026-09-15 06:00:00,13,Singapore outer roads,SYNTHETIC_AGENT_REPORT,0.96,SYNTHETIC
+6,11,2026-09-11 14:00:00,2,Dhamra coal discharge complete,SYNTHETIC_AGENT_REPORT,0.99,SYNTHETIC
+7,16,2026-09-18 00:00:00,2,Dhamra iron ore berth,SYNTHETIC_AGENT_REPORT,0.98,SYNTHETIC
+8,17,2026-09-20 12:00:00,6,Port Hedland ballast approach,SYNTHETIC_AGENT_REPORT,0.95,SYNTHETIC

@@ -1,0 +1,5 @@
+id,contract_id,vessel_class,contract_type,duration_days,fixed_rate_usd_day,min_volume_mt,max_volume_mt,bunker_adjustment_clause,notice_days,is_demo
+1,CT-SPOT-VO-01,PANAMAX,SPOT,25,16500.0,70000.0,80000.0,False,3,True
+2,CT-COA-AUS-2026,PANAMAX,MULTI_VOYAGE,180,14800.0,400000.0,600000.0,True,14,True
+3,CT-TC-SUPRA-6M,SUPRAMAX,SHORT_TERM,180,13200.0,50000.0,60000.0,True,7,True
+4,CT-TC-CAPE-1Y,CAPESIZE,MEDIUM_TERM,365,23500.0,1200000.0,1800000.0,True,30,True

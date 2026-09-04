@@ -1,0 +1,5 @@
+id,cargo_id,strategy,window_start,window_end,lead_time_days,target_rate_usd_mt,risk_buffer_pct,status,is_demo
+1,1,SPOT,2026-09-08 00:00:00,2026-09-18 23:59:59,10,17.5,5.0,OPEN,True
+2,2,MULTI_VOYAGE,2026-09-10 00:00:00,2026-09-22 23:59:59,12,13.8,7.5,OPEN,True
+3,3,SPOT,2026-09-12 00:00:00,2026-09-24 23:59:59,8,11.2,5.0,OPEN,True
+4,5,SHORT_TERM,2026-09-15 00:00:00,2026-09-30 23:59:59,15,15.6,6.0,OPEN,True

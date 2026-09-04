@@ -9,6 +9,7 @@ from app.models.domain import (
     RuntimeModeEvent,
     DataSource,
     OfflinePackage,
+    OfflinePackageDataset,
     MarketObservation,
     Port,
     PortConstraint,
@@ -34,7 +35,9 @@ __all__ = [
     "RuntimeModeEvent",
     "DataSource",
     "OfflinePackage",
+    "OfflinePackageDataset",
     "MarketObservation",
+
     "Port",
     "PortConstraint",
     "VesselClass",

@@ -1,0 +1,4 @@
+id,vessel_profile_id,route_id,cargo_parcel_id,contract_strategy,estimated_freight_cost,estimated_bunker_cost,estimated_port_cost,estimated_total_cost,arrival_date,max_voyages,eligibility,eligibility_reason,data_kind,is_demo
+1,1,6,4,SPOT,345000.0,84000.0,35000.0,464000.0,2026-09-22 18:00:00,1,True,Feasible: Handysize matches Haldia draft limit (8.5m) and completes before next commitment,DERIVED,True
+2,6,5,3,SPOT,590000.0,142000.0,42000.0,774000.0,2026-09-19 12:00:00,1,True,Feasible: Supramax fits Samarinda draft and arrives before next loading,DERIVED,True
+3,11,12,1,SPOT,1240000.0,210000.0,55000.0,1505000.0,2026-09-20 00:00:00,1,True,Feasible: Panamax vessel capacity and schedule preserve next Newcastle commitment,DERIVED,True

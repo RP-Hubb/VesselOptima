@@ -1,0 +1,4 @@
+id,vessel_profile_id,availability_event_id,commitment_id,window_start,window_end,idle_days,employment_control,is_actionable,selected_action,status
+1,1,1,1,2026-09-10 12:00:00,2026-09-24 00:00:00,13.5,CONTROLLED,True,ALTERNATIVE_EMPLOYMENT,EVALUATED
+2,6,4,2,2026-09-08 18:00:00,2026-09-26 00:00:00,17.25,CONTROLLED,True,REPOSITION,EVALUATED
+3,11,6,3,2026-09-11 14:00:00,2026-09-28 00:00:00,16.4,CONTROLLED,True,WAIT,EVALUATED

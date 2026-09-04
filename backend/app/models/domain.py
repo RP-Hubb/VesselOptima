@@ -137,6 +137,26 @@ class OfflinePackage(AuditMixin, Base):
     validator_version = Column(String(32), nullable=True)
     status = Column(String(32), default="VALIDATED", nullable=False)
 
+    datasets = relationship("OfflinePackageDataset", back_populates="package", cascade="all, delete-orphan")
+
+
+class OfflinePackageDataset(AuditMixin, Base):
+    """Individual dataset entry within a validated offline package per Section S."""
+    __tablename__ = "offline_package_datasets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(String(64), ForeignKey("offline_packages.package_id"), nullable=False, index=True)
+    dataset_name = Column(String(128), nullable=False)
+    file_path = Column(String(512), nullable=False)
+    sha256 = Column(String(64), nullable=False)
+    row_count = Column(Integer, nullable=False)
+    schema_version = Column(String(32), nullable=False)
+    provenance_type = Column(Enum(DataKindEnum), default=DataKindEnum.SYNTHETIC, nullable=False)
+    description = Column(Text, nullable=True)
+
+    package = relationship("OfflinePackage", back_populates="datasets")
+
+
 
 # ── Market Observations ──────────────────────────────────────────────
 

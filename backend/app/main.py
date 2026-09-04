@@ -21,7 +21,8 @@ from app.core.exceptions import (
 )
 from app.db.base import Base
 from app.db.session import engine
-from app.api.v1 import health, runtime
+from app.api.v1 import data, health, runtime
+
 
 # Import models so they are registered with Base.metadata
 import app.models  # noqa: F401
@@ -101,6 +102,8 @@ async def add_mode_headers(request: Request, call_next):
 
 app.include_router(health.router)
 app.include_router(runtime.router, prefix="/v1")
+app.include_router(data.router, prefix="/v1")
+
 
 
 @app.get("/", tags=["Root"])

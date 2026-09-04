@@ -1,0 +1,167 @@
+{
+  "package_id": "demo-v1",
+  "package_type": "OFFLINE_DEMO",
+  "version": "1.0.0",
+  "schema_version": "1.0.0",
+  "created_at": "2026-09-05T00:00:00Z",
+  "provenance": "SYNTHETIC",
+  "description": "VesselOptima canonical offline demonstration package.",
+  "coverage_start": "2024-01-01T00:00:00Z",
+  "coverage_end": "2026-08-31T00:00:00Z",
+  "total_files": 19,
+  "total_rows": 20558,
+  "files": [
+    {
+      "path": "bunker/fuel_prices.csv",
+      "dataset_name": "fuel_prices",
+      "sha256": "188230e3a27c7e373a253a8b998d316264fa9a71c7434f06e29ec36b804337c4",
+      "rows": 4870,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "cargo/cargo_requirements.csv",
+      "dataset_name": "cargo_requirements",
+      "sha256": "1f45b8fa1986991925f2c6952460b45396724ccf1bd64309f348d7900571451d",
+      "rows": 6,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "congestion/congestion_observations.csv",
+      "dataset_name": "congestion_observations",
+      "sha256": "3517a469ba46b887d14a399da3ae639efa2a4834e5dff44dd49587d8359f6cb7",
+      "rows": 3896,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "contracts/contracts.csv",
+      "dataset_name": "contracts",
+      "sha256": "9fa49187c91c61005de14b5019bed749bc1f7b690e65608f3ee6ce992191a0f4",
+      "rows": 4,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "employment/employment_candidates.csv",
+      "dataset_name": "employment_candidates",
+      "sha256": "50f4bfa1502cfe239826e44fd41fb75a581a87fb519c3c2b9555d8a13c00180f",
+      "rows": 3,
+      "schema_version": "1.0.0",
+      "provenance_type": "DERIVED"
+    },
+    {
+      "path": "employment/employment_evaluations.csv",
+      "dataset_name": "employment_evaluations",
+      "sha256": "4c2dd58184ae37316248aad79b383de06e1547735433e3c3e102ac711dfa8a70",
+      "rows": 6,
+      "schema_version": "1.0.0",
+      "provenance_type": "DERIVED"
+    },
+    {
+      "path": "freight/freight_observations.csv",
+      "dataset_name": "freight_observations",
+      "sha256": "d7055fbf3632838abbe5677029301c1c70c3977afc01a84e114b90ea5b9621c5",
+      "rows": 4870,
+      "schema_version": "1.0.0",
+      "provenance_type": "PROXY"
+    },
+    {
+      "path": "fx/fx_observations.csv",
+      "dataset_name": "fx_observations",
+      "sha256": "12dba287c718c71ce2625393a452c75cdd9829ff38198418c2445cde2eee522e",
+      "rows": 1948,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "idle/idle_windows.csv",
+      "dataset_name": "idle_windows",
+      "sha256": "0d68804482efaad960cc0800a24fe5457dc04d08fa19c87e0b656f40d5b94d8e",
+      "rows": 3,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "market/market_indices.csv",
+      "dataset_name": "market_indices",
+      "sha256": "47f43d9087abe1aa8d2b390c62a65f51d59e7747d7eb62c0fedde6fe1b0fc515",
+      "rows": 4870,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "ports/port_constraints.csv",
+      "dataset_name": "port_constraints",
+      "sha256": "cec3729325a1a2f68f8f5db61edeb9447eb429df3db164fdaaba4013bf57ce1c",
+      "rows": 10,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "ports/ports.csv",
+      "dataset_name": "ports",
+      "sha256": "c7e4c702ea55b9a366a494c91cea93980b52d2c947937a1c1480d856a4ed0694",
+      "rows": 15,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "procurement/procurement_windows.csv",
+      "dataset_name": "procurement_windows",
+      "sha256": "6a2b554c35c4a65359a67871be82297647b2345924da420cfd731316770deb2b",
+      "rows": 4,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "routes/routes.csv",
+      "dataset_name": "routes",
+      "sha256": "eb0bb9388e0e98110483a43757fee7b18103b04bb2a6e93350c0a51b27a5c798",
+      "rows": 12,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "scenarios/scenarios.csv",
+      "dataset_name": "scenarios",
+      "sha256": "dfb7b3bd56153d82f324ac81fa72fcb2e827b5261bbe89880021321081365963",
+      "rows": 5,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "vessel_classes/vessel_classes.csv",
+      "dataset_name": "vessel_classes",
+      "sha256": "d64a384640ea634f53e13386b2ffde494aa63399b0527bacc392cef5ec63efce",
+      "rows": 4,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "vessel_positions/vessel_commitments.csv",
+      "dataset_name": "vessel_commitments",
+      "sha256": "dfacd183a8b752b4c1e1dd0c48deb09b382d55b83e4c44c3fcf1b8f18c7fde7d",
+      "rows": 4,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "vessel_positions/vessel_positions.csv",
+      "dataset_name": "vessel_positions",
+      "sha256": "e66f864b0ea3db39c562d4db33f644b572ad2c39367e2c6cf1fbdd87eebf81a6",
+      "rows": 8,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    },
+    {
+      "path": "vessels/vessels.csv",
+      "dataset_name": "vessels",
+      "sha256": "31c0cbfc9e33f2df0ece00e10254c328e0b7d761858bc7c31387e012e86b72c7",
+      "rows": 20,
+      "schema_version": "1.0.0",
+      "provenance_type": "SYNTHETIC"
+    }
+  ]
+}

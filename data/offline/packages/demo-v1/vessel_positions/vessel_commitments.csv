@@ -1,0 +1,5 @@
+id,vessel_profile_id,commitment_start,commitment_end,route_description,status,is_immutable,employment_control_ref,source
+1,1,2026-09-24 00:00:00,2026-10-14 23:59:59,Committed coastal coal shuttle Paradip-Tuticorin,CONFIRMED,True,TIME_CHARTER_CT_2026_09,SYNTHETIC_FIXTURE_RECORD
+2,6,2026-09-26 00:00:00,2026-10-18 23:59:59,Committed Samarinda to Paradip coal voyage,CONFIRMED,True,COA_SCHEDULE_VO_2026,SYNTHETIC_FIXTURE_RECORD
+3,11,2026-09-28 00:00:00,2026-10-25 23:59:59,Committed Newcastle to Dhamra coking coal voyage,CONFIRMED,True,TIME_CHARTER_CT_2026_04,SYNTHETIC_FIXTURE_RECORD
+4,16,2026-10-05 00:00:00,2026-11-02 23:59:59,Committed Port Hedland to Dhamra iron ore voyage,CONFIRMED,True,LONG_TERM_CHARTER_TITAN,SYNTHETIC_FIXTURE_RECORD
