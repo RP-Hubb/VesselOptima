@@ -1,0 +1,8 @@
+"""
+VesselOptima — Database Package
+"""
+
+from app.db.base import Base
+from app.db.session import engine, SessionLocal, get_db, check_db_health
+
+__all__ = ["Base", "engine", "SessionLocal", "get_db", "check_db_health"]

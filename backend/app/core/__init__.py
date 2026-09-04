@@ -1,0 +1,3 @@
+"""
+VesselOptima — Core Package
+"""
