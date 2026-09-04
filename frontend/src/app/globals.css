@@ -1,26 +1,132 @@
+/*
+ * VesselOptima — Design System Tokens
+ *
+ * Institutional maritime/freight intelligence terminal aesthetic.
+ * Tokens sourced from Build Specification Section W.
+ *
+ * NOT: glassmorphism, purple gradients, giant hero sections,
+ *      excessive rounded cards, decorative AI imagery.
+ *
+ * IS: dense information hierarchy, restrained dark theme,
+ *     subtle borders, compact controls, tabular numerals.
+ */
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Surface hierarchy ─────────────────────────────── */
+  --bg: #081018;
+  --surface-1: #0E1822;
+  --surface-2: #13212D;
+  --border: #273847;
+
+  /* ── Typography ────────────────────────────────────── */
+  --text: #E8F0F5;
+  --muted: #92A4B2;
+
+  /* ── Semantic ──────────────────────────────────────── */
+  --positive: #49B987;
+  --negative: #E76F6F;
+  --warning: #E5B95C;
+  --info: #65B9D7;
+
+  /* ── Charts ────────────────────────────────────────── */
+  --chart-historical: #A7C7D9;
+  --chart-forecast: #65B9D7;
+  --chart-interval: rgba(101, 185, 215, 0.18);
+
+  /* ── Spacing base ──────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ── Radius / elevation ────────────────────────────── */
+  --radius: 2px;
+  --radius-md: 4px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+/* ── Tabular numerals for prices, dates, IDs ──────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', monospace;
+}
+
+/* ── Compact table rows ──────────────────────────────── */
+.table-compact th,
+.table-compact td {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-compact th {
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.6875rem;
+}
+
+/* ── Focus ring (visible, accessible) ─────────────── */
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar styling ────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ── Status indicators ────────────────────────────── */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: var(--space-2);
+}
+.status-dot--healthy { background: var(--positive); }
+.status-dot--degraded { background: var(--warning); }
+.status-dot--unhealthy { background: var(--negative); }
+.status-dot--unknown { background: var(--muted); }
+
+/* ── Animations (limited, respects reduced motion) ── */
+@media (prefers-reduced-motion: no-preference) {
+  .transition-base {
+    transition: all 150ms ease;
+  }
 }
