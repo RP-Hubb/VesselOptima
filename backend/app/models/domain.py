@@ -553,3 +553,34 @@ class BacktestRun(AuditMixin, Base):
     runtime_mode = Column(Enum(RuntimeModeEnum), nullable=False)
     data_context_id = Column(String(64), nullable=True)
     result_summary = Column(JSON, nullable=True)
+
+
+# ── Feasibility Checks ───────────────────────────────────────────────
+
+class FeasibilityCheck(AuditMixin, Base):
+    """
+    Feasibility evaluation record capturing the operational, physical,
+    and temporal assessment of a vessel-cargo-route assignment per Build Spec.
+    """
+    __tablename__ = "feasibility_checks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True, index=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=True, index=True)
+    route_id = Column(Integer, ForeignKey("routes.id"), nullable=True, index=True)
+    is_feasible = Column(Boolean, nullable=False)
+    primary_reason_code = Column(String(128), nullable=True)
+    reason_codes = Column(JSON, nullable=True)
+    failed_checks = Column(JSON, nullable=True)
+    checks = Column(JSON, nullable=True)
+    warnings = Column(JSON, nullable=True)
+    timing = Column(JSON, nullable=True)
+    evidence = Column(JSON, nullable=True)
+    provenance = Column(JSON, nullable=True)
+    evaluated_at = Column(DateTime, default=utcnow, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+
+    cargo = relationship("CargoParcel")
+    vessel = relationship("VesselProfile")
+    route = relationship("Route")
+

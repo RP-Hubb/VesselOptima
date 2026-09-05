@@ -10,6 +10,8 @@ import type {
   RuntimeStatusResponse,
   HealthResponse,
   ErrorResponse,
+  SeriesCatalogItem,
+  ForecastResponse,
 } from "@/types/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -82,4 +84,34 @@ export async function getHealth(): Promise<HealthResponse> {
   return request<HealthResponse>("/health");
 }
 
+// ── Forecast ────────────────────────────────────────────────────────
+
+export async function getForecastSeries(): Promise<SeriesCatalogItem[]> {
+  return request<SeriesCatalogItem[]>("/v1/forecast/series");
+}
+
+export async function getForecast(
+  target: string,
+  seriesId: string,
+  horizonDays: number = 30
+): Promise<ForecastResponse> {
+  return request<ForecastResponse>(
+    `/v1/forecast/${target}/${seriesId}?horizon_days=${horizonDays}`
+  );
+}
+
+export async function trainForecast(
+  target: string,
+  seriesId: string,
+  horizonDays: number = 30,
+  force: boolean = false
+): Promise<ForecastResponse> {
+  await request<{ status: string }>("/v1/forecast/train", {
+    method: "POST",
+    body: JSON.stringify({ series_id: seriesId, horizon_days: horizonDays, force }),
+  });
+  return getForecast(target, seriesId, horizonDays);
+}
+
 export { ApiError };
+

@@ -1,0 +1,49 @@
+{
+  "model_id": "forecast_market_index_INDEX_BDI_v1.0.0",
+  "model_version": "v1.0.0",
+  "target": "market_index",
+  "series_id": "INDEX_BDI",
+  "target_unit": "POINTS",
+  "frequency": "DAILY",
+  "training_start": "2024-01-01",
+  "training_end": "2026-08-31",
+  "total_observations": 974,
+  "forecast_horizons": [
+    7,
+    14,
+    30
+  ],
+  "features": [
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_7",
+    "lag_14",
+    "lag_30",
+    "rolling_mean_7",
+    "rolling_std_7",
+    "rolling_mean_14",
+    "rolling_mean_30",
+    "dayofweek",
+    "month",
+    "dayofyear"
+  ],
+  "feature_version": "1.0.0",
+  "validation_method": "expanding_window_walk_forward",
+  "validation_folds": 3,
+  "selected_model": "XGBoostRegressor",
+  "selected_metrics": {
+    "mae": 101.8049,
+    "rmse": 125.7032,
+    "smape": 5.26,
+    "directional_accuracy": 71.11,
+    "total_eval_points": 90
+  },
+  "provenance": "SYNTHETIC",
+  "source_dataset": "market_index/INDEX_BDI",
+  "package_id": "demo-v1",
+  "package_version": "1.0.0",
+  "random_seed": 20260905,
+  "created_at": "2026-09-05T00:00:00Z",
+  "artifact_hash": "1271d2543f7d298894172a4a304a957a92c559e6926caf2722805ecab2455d60"
+}

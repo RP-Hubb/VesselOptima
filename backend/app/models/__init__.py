@@ -29,6 +29,7 @@ from app.models.domain import (
     IdleEmploymentEvaluation,
     IdleActionEvaluation,
     BacktestRun,
+    FeasibilityCheck,
 )
 
 __all__ = [
@@ -56,4 +57,5 @@ __all__ = [
     "IdleEmploymentEvaluation",
     "IdleActionEvaluation",
     "BacktestRun",
+    "FeasibilityCheck",
 ]
