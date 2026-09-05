@@ -32,6 +32,8 @@ from app.models.domain import (
     FeasibilityCheck,
     ProcurementConfig,
     ProcurementEvaluation,
+    EmploymentOpportunity,
+    IdleAssessment,
 )
 
 __all__ = [
@@ -62,4 +64,6 @@ __all__ = [
     "FeasibilityCheck",
     "ProcurementConfig",
     "ProcurementEvaluation",
+    "EmploymentOpportunity",
+    "IdleAssessment",
 ]

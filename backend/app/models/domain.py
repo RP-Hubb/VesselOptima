@@ -634,3 +634,75 @@ class ProcurementEvaluation(AuditMixin, Base):
 
     cargo = relationship("CargoParcel")
 
+
+# ── Idle Management & Alternative Employment ────────────────────────
+
+class EmploymentOpportunity(AuditMixin, Base):
+    """
+    Alternative employment candidate opportunity for optimization handoff.
+    Captures operational feasibility, procurement status, chronological timeline,
+    and transparent economics without performing global fleet allocation.
+    """
+    __tablename__ = "employment_opportunities"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    candidate_id = Column(String(128), unique=True, nullable=False, index=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=False, index=True)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True, index=True)
+    employment_type = Column(String(64), nullable=False)
+    origin_port_id = Column(Integer, ForeignKey("ports.id"), nullable=True)
+    destination_port_id = Column(Integer, ForeignKey("ports.id"), nullable=True)
+    availability_start = Column(DateTime, nullable=False)
+    availability_end = Column(DateTime, nullable=True)
+    employment_start = Column(DateTime, nullable=True)
+    employment_end = Column(DateTime, nullable=True)
+    delivery_deadline = Column(DateTime, nullable=True)
+    ballast_distance_nm = Column(Float, nullable=True)
+    ballast_days = Column(Float, nullable=True)
+    voyage_days = Column(Float, nullable=True)
+    idle_days = Column(Float, nullable=True)
+    status = Column(String(32), nullable=False)  # FEASIBLE, INFEASIBLE
+    primary_reason_code = Column(String(64), nullable=True)
+    primary_reason_description = Column(Text, nullable=True)
+    optimization_status = Column(String(64), nullable=False, default="READY_FOR_OPTIMIZATION")
+    economic_summary = Column(JSON, nullable=True)
+    timeline_detail = Column(JSON, nullable=True)
+    feasibility_detail = Column(JSON, nullable=True)
+    procurement_detail = Column(JSON, nullable=True)
+    provenance = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+
+    vessel = relationship("VesselProfile")
+    cargo = relationship("CargoParcel")
+    origin_port = relationship("Port", foreign_keys=[origin_port_id])
+    destination_port = relationship("Port", foreign_keys=[destination_port_id])
+
+
+class IdleAssessment(AuditMixin, Base):
+    """
+    Evaluates vessel idle states and financial cost exposure during availability gaps.
+    """
+    __tablename__ = "idle_assessments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=False, index=True)
+    assessment_date = Column(DateTime, nullable=False)
+    window_start = Column(DateTime, nullable=False)
+    window_end = Column(DateTime, nullable=True)
+    available_days = Column(Float, nullable=False, default=0.0)
+    idle_days = Column(Float, nullable=False, default=0.0)
+    idle_reason = Column(String(64), nullable=False)
+    daily_idle_rate = Column(Float, nullable=False, default=0.0)
+    idle_cost = Column(Float, nullable=False, default=0.0)
+    cost_source = Column(String(64), nullable=False, default="ASSUMED")
+    next_commitment_id = Column(Integer, ForeignKey("vessel_commitments.id"), nullable=True)
+    next_commitment_start = Column(DateTime, nullable=True)
+    advisory_notes = Column(Text, nullable=True)
+    provenance = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+
+    vessel = relationship("VesselProfile")
+    next_commitment = relationship("VesselCommitment")
+

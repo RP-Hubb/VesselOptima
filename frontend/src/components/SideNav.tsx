@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { label: "Feasibility", href: "/feasibility", shortcut: "03" },
   { label: "Procurement", href: "/procurement", shortcut: "04" },
   { label: "Optimizer", href: "/optimizer", shortcut: "05" },
-  { label: "Idle & Emp", href: "/idle", shortcut: "06" },
+  { label: "Idle & Emp", href: "/employment", shortcut: "06" },
   { label: "Scenarios", href: "/scenarios", shortcut: "07" },
   { label: "Ports", href: "/ports", shortcut: "08" },
   { label: "Backtest", href: "/backtest", shortcut: "09" },

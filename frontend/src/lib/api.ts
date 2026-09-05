@@ -19,6 +19,14 @@ import type {
   ProcurementProfileItem,
   ProcurementCompareRequest,
   ProcurementCompareResponse,
+  FleetEmploymentOverview,
+  VesselEmploymentStatus,
+  VesselTimelineResponse,
+  OpportunitiesResponse,
+  FleetIdleResponse,
+  EmploymentCandidateResponse,
+  CandidateMatrixResponse,
+  CandidateCompareResponse,
 } from "@/types/api";
 
 function getApiBase(): string {
@@ -174,6 +182,81 @@ export async function compareProcurementStrategies(
   body: ProcurementCompareRequest
 ): Promise<ProcurementCompareResponse> {
   return request<ProcurementCompareResponse>("/v1/procurement/compare", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Employment & Idle Management (Phase 6) ──────────────────────────
+
+export async function getFleetEmploymentOverview(
+  asOfDate?: string
+): Promise<FleetEmploymentOverview> {
+  const query = asOfDate ? `?as_of_date=${encodeURIComponent(asOfDate)}` : "";
+  return request<FleetEmploymentOverview>(`/v1/employment/overview${query}`);
+}
+
+export async function getVesselsEmploymentStatus(
+  asOfDate?: string
+): Promise<VesselEmploymentStatus[]> {
+  const query = asOfDate ? `?as_of_date=${encodeURIComponent(asOfDate)}` : "";
+  return request<VesselEmploymentStatus[]>(`/v1/employment/vessels${query}`);
+}
+
+export async function getVesselTimeline(
+  vesselId: number,
+  horizonDays: number = 45,
+  asOfDate?: string
+): Promise<VesselTimelineResponse> {
+  const params = new URLSearchParams({ horizon_days: horizonDays.toString() });
+  if (asOfDate) params.append("as_of_date", asOfDate);
+  return request<VesselTimelineResponse>(`/v1/employment/vessels/${vesselId}/timeline?${params.toString()}`);
+}
+
+export async function getEmploymentOpportunities(): Promise<OpportunitiesResponse> {
+  return request<OpportunitiesResponse>("/v1/employment/opportunities");
+}
+
+export async function getFleetIdleAssessments(
+  asOfDate?: string
+): Promise<FleetIdleResponse> {
+  const query = asOfDate ? `?as_of_date=${encodeURIComponent(asOfDate)}` : "";
+  return request<FleetIdleResponse>(`/v1/employment/idle${query}`);
+}
+
+export async function evaluateEmploymentCandidate(body: {
+  vessel_id: number;
+  cargo_id: number;
+  as_of_date?: string;
+  employment_type?: string;
+  procurement_profile_id?: string;
+  persist?: boolean;
+}): Promise<EmploymentCandidateResponse> {
+  return request<EmploymentCandidateResponse>("/v1/employment/evaluate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getEmploymentCandidates(body: {
+  vessel_id?: number;
+  cargo_id?: number;
+  ready_only?: boolean;
+  as_of_date?: string;
+  persist?: boolean;
+}): Promise<CandidateMatrixResponse> {
+  return request<CandidateMatrixResponse>("/v1/employment/candidates", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function compareEmploymentCandidates(body: {
+  vessel_id?: number;
+  cargo_id?: number;
+  as_of_date?: string;
+}): Promise<CandidateCompareResponse> {
+  return request<CandidateCompareResponse>("/v1/employment/compare", {
     method: "POST",
     body: JSON.stringify(body),
   });

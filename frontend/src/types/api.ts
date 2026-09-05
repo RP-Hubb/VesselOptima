@@ -350,3 +350,215 @@ export interface ProcurementCompareResponse {
   evaluated_at: string;
 }
 
+// ── Employment & Idle Management (Phase 6) ──────────────────────────
+
+export interface FleetEmploymentOverview {
+  as_of_date: string;
+  total_vessels: number;
+  available_vessels: number;
+  committed_vessels: number;
+  idle_vessels: number;
+  alternative_candidates_generated: number;
+  provenance: Record<string, unknown>;
+}
+
+export interface CommitmentDetail {
+  id: number;
+  description: string;
+  commitment_start: string;
+  commitment_end?: string | null;
+}
+
+export interface VesselEmploymentStatus {
+  vessel_id: number;
+  vessel_name: string;
+  vessel_class: string;
+  current_location_port_id: number;
+  current_location_name: string;
+  available_at: string;
+  has_active_commitment: boolean;
+  active_commitment?: CommitmentDetail | null;
+  next_commitment?: CommitmentDetail | null;
+}
+
+export interface TimelineEvent {
+  event_type: "AVAILABLE" | "COMMITTED" | "IDLE" | string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  color: string;
+  details: string;
+}
+
+export interface VesselTimelineResponse {
+  vessel_id: number;
+  vessel_name: string;
+  vessel_class: string;
+  as_of_date: string;
+  horizon_end: string;
+  events: TimelineEvent[];
+}
+
+export interface EmploymentOpportunity {
+  opportunity_id: string;
+  cargo_id: number;
+  commodity: string;
+  volume_mt: number;
+  origin_port_id: number;
+  origin_port_name: string;
+  destination_port_id: number;
+  destination_port_name: string;
+  laycan_start: string;
+  laycan_end: string;
+  delivery_deadline: string;
+  tolerance_pct: number;
+  status: string;
+}
+
+export interface OpportunitiesResponse {
+  opportunities: EmploymentOpportunity[];
+  total_count: number;
+}
+
+export interface IdleAssessmentItem {
+  vessel_id: number;
+  vessel_name: string;
+  vessel_class: string;
+  as_of_date: string;
+  is_idle: boolean;
+  idle_days: number;
+  window_start: string;
+  window_end?: string | null;
+  daily_idle_rate: number;
+  idle_cost: number;
+  cost_source: string;
+  reason_code: string;
+  reason_description: string;
+  active_commitment?: Record<string, unknown> | null;
+  next_commitment?: Record<string, unknown> | null;
+  provenance: Record<string, unknown>;
+}
+
+export interface FleetIdleResponse {
+  as_of_date: string;
+  total_vessels_assessed: number;
+  idle_vessels_count: number;
+  active_vessels_count: number;
+  total_idle_days: number;
+  total_idle_cost: number;
+  assessments: IdleAssessmentItem[];
+  provenance: Record<string, unknown>;
+}
+
+export interface EmploymentCandidateResponse {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  vessel_class: string;
+  cargo_id: number;
+  cargo_name: string;
+  employment_type: string;
+  origin_port_id: number;
+  origin_port_name: string;
+  destination_port_id: number;
+  destination_port_name: string;
+  status: "FEASIBLE" | "INFEASIBLE";
+  optimization_status: "READY_FOR_OPTIMIZATION" | "REJECTED";
+  primary_reason_code: string;
+  primary_reason_description: string;
+  failed_reasons: string[];
+  ballast: {
+    ballast_required: boolean;
+    ballast_distance_nm: number;
+    ballast_speed_knots: number;
+    ballast_days: number;
+    ballast_departure: string;
+    ballast_arrival: string;
+    arrival_at_origin?: string;
+    bunker_consumption_vlsfo_mt: number;
+    distance_source: string;
+    data_source: string;
+    speed_source: string;
+    assumption_flag: boolean;
+    provenance_fallback: boolean;
+    notes?: string;
+    [key: string]: unknown;
+  };
+  feasibility: {
+    is_feasible: boolean;
+    primary_reason_code: string | null;
+    failed_checks: string[];
+    checks: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  procurement: {
+    profile_id: string;
+    lead_time_days: number;
+    timing_signal?: string | null;
+    remaining_decision_window_days?: number | null;
+    is_timing_feasible: boolean;
+    [key: string]: unknown;
+  };
+  timeline: {
+    is_timeline_feasible: boolean;
+    primary_reason_code: string;
+    failed_checks: string[];
+    reason_codes: string[];
+    conflicts?: Array<{
+      conflict_id?: number;
+      conflicting_commitment_id?: number;
+      description: string;
+      conflict_start: string;
+      commitment_start?: string;
+      conflict_end?: string | null;
+      commitment_end?: string | null;
+      candidate_completion: string;
+      candidate_discharge_end?: string;
+      overlap_days: number;
+    }>;
+    timing_milestones: Record<string, string | null>;
+    duration_breakdown: Record<string, number>;
+    warnings: string[];
+    [key: string]: unknown;
+  };
+  economics: {
+    expected_revenue?: number | null;
+    expected_revenue_usd?: number | null;
+    gross_contribution?: number | null;
+    gross_contribution_usd?: number | null;
+    total_employment_cost: number;
+    total_voyage_costs_usd: number;
+    utilization_ratio_pct: number;
+    currency: string;
+    revenue_source: string;
+    cost_breakdown: Record<string, number>;
+    operational_breakdown: Record<string, number>;
+    data_provenance: Record<string, string>;
+    [key: string]: unknown;
+  };
+  provenance: Record<string, unknown>;
+}
+
+export interface CandidateMatrixResponse {
+  as_of_date: string;
+  total_evaluated: number;
+  feasible_count: number;
+  infeasible_count: number;
+  returned_count: number;
+  candidates: EmploymentCandidateResponse[];
+  governing_boundary: string;
+  provenance: Record<string, unknown>;
+}
+
+export interface CandidateCompareResponse {
+  comparison_type: string;
+  filter_vessel_id?: number | null;
+  filter_cargo_id?: number | null;
+  as_of_date: string;
+  candidate_count: number;
+  candidates: EmploymentCandidateResponse[];
+  advisory_note: string;
+  provenance: Record<string, unknown>;
+}
+
+

@@ -52,12 +52,12 @@
 *   **DEPENDENCIES:** Feasibility Engine, Forecasting Engine
 
 ## 7. Idle & Alternative Employment Engine
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Idle window detection, alternative employment candidates, cost/risk comparison.
+*   **STATUS:** COMPLETE (Phase 6)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`EmploymentOpportunity`, `IdleAssessment`), `backend/alembic/versions/6a7b8c9d0e1f_add_employment_tables.py`, `backend/app/engines/employment/` (`reason_codes.py`, `ballast.py`, `timeline.py`, `idle_model.py`, `economics.py`, `service.py`, `__init__.py`), `backend/app/schemas/employment.py`, `backend/app/api/v1/employment.py`, `backend/tests/test_employment_engine.py`, `frontend/src/app/employment/page.tsx`, `frontend/src/app/idle/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Implement WAIT vs REPOSITION vs ALTERNATIVE_EMPLOYMENT logic.
-*   **DEPENDENCIES:** Feasibility Engine
+*   **NEXT ACTION:** Proceed to Phase 7 (MILP Fleet Optimization Engine)
+*   **DEPENDENCIES:** Feasibility Engine, Procurement Engine, Offline Data Package
 
 ## 8. MILP Optimizer
 *   **STATUS:** MISSING
