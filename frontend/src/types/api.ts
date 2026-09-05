@@ -128,3 +128,104 @@ export interface ForecastTrainRequest {
   force?: boolean;
 }
 
+// ── Feasibility Types ─────────────────────────────────────────────────
+
+export interface CargoRequirementItem {
+  id: number;
+  commodity: string;
+  volume_mt: number;
+  origin_port_id: number;
+  destination_port_id: number;
+  origin_port_name?: string | null;
+  destination_port_name?: string | null;
+  loading_window_start: string;
+  loading_window_end: string;
+  delivery_deadline: string;
+  tolerance_pct: number;
+}
+
+export interface FleetVesselItem {
+  vessel_id: number;
+  vessel_name: string;
+  vessel_class: string;
+  cargo_capacity: number;
+  draft: number;
+  loa: number;
+  beam: number;
+  is_feasible: boolean;
+  primary_reason_code: string | null;
+  primary_reason_description: string | null;
+  failed_checks: string[];
+  warnings_count: number;
+}
+
+export interface FleetFeasibilityResponse {
+  cargo_id: number;
+  cargo_name: string;
+  total_vessels: number;
+  feasible_count: number;
+  infeasible_count: number;
+  vessels: FleetVesselItem[];
+  provenance: Record<string, unknown>;
+  evaluated_at: string;
+}
+
+export interface FeasibilityEvaluateRequest {
+  cargo_id: number;
+  vessel_id: number;
+  route_id?: number | null;
+  persist?: boolean;
+}
+
+export interface CheckEvidenceDetail {
+  passed: boolean;
+  required?: number | string | null;
+  permitted?: number | string | null;
+  actual?: number | string | null;
+  max?: number | string | null;
+  status?: string;
+  reason?: string | null;
+  [key: string]: unknown;
+}
+
+export interface FeasibilityResultResponse {
+  is_feasible: boolean;
+  cargo_id: number | null;
+  cargo_name: string | null;
+  vessel_id: number | null;
+  vessel_name: string | null;
+  vessel_class: string | null;
+  route_id: number | null;
+  route_name: string | null;
+  origin_port: string | null;
+  destination_port: string | null;
+  primary_reason_code: string | null;
+  primary_reason_description: string | null;
+  reason_codes: string[];
+  failed_checks: string[];
+  checks: Record<string, CheckEvidenceDetail>;
+  warnings: string[];
+  timing: {
+    origin_laycan_start?: string;
+    origin_laycan_end?: string;
+    delivery_deadline?: string;
+    positioning_days?: number;
+    estimated_arrival_origin?: string;
+    loading_days?: number;
+    sailing_days?: number;
+    discharge_days?: number;
+    total_voyage_days?: number;
+    estimated_delivery_destination?: string;
+    [key: string]: unknown;
+  };
+  evidence: Record<string, unknown>;
+  provenance: {
+    package_id?: string;
+    package_version?: string;
+    data_type?: string;
+    notes?: string;
+    [key: string]: unknown;
+  };
+  evaluated_at: string;
+}
+

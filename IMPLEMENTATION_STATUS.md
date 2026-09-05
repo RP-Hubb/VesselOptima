@@ -36,11 +36,11 @@
 
 
 ## 5. Feasibility Engine
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Vessel constraints, port constraints checks, reason code generator.
+*   **STATUS:** COMPLETE (Phase 4)
+*   **EXISTING FILES:** `backend/app/engines/feasibility/` (`reason_codes.py`, `vessel_checks.py`, `port_checks.py`, `schedule_checks.py`, `service.py`), `backend/app/schemas/feasibility.py`, `backend/app/api/v1/feasibility.py`, `backend/alembic/versions/4e5f6a7b8c9d_add_feasibility_checks.py`, `backend/tests/test_feasibility_engine.py`, `frontend/src/app/feasibility/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Implement rule-based feasibility validation.
+*   **NEXT ACTION:** Proceed to Phase 5 (Dynamic Procurement Engine)
 *   **DEPENDENCIES:** Core Domain Models, Offline Data Package
 
 ## 6. Procurement Engine

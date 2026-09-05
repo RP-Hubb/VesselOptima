@@ -15,14 +15,15 @@ import Link from "next/link";
 const NAV_ITEMS = [
   { label: "Market", href: "/", shortcut: "01" },
   { label: "Forecast", href: "/forecast", shortcut: "02" },
-  { label: "Optimizer", href: "/optimizer", shortcut: "03" },
-  { label: "Idle & Emp", href: "/idle", shortcut: "04" },
-  { label: "Scenarios", href: "/scenarios", shortcut: "05" },
-  { label: "Ports", href: "/ports", shortcut: "06" },
-  { label: "Backtest", href: "/backtest", shortcut: "07" },
-  { label: "Risk", href: "/risk", shortcut: "08" },
-  { label: "Data", href: "/data", shortcut: "09" },
-  { label: "Audit", href: "/audit", shortcut: "10" },
+  { label: "Feasibility", href: "/feasibility", shortcut: "03" },
+  { label: "Optimizer", href: "/optimizer", shortcut: "04" },
+  { label: "Idle & Emp", href: "/idle", shortcut: "05" },
+  { label: "Scenarios", href: "/scenarios", shortcut: "06" },
+  { label: "Ports", href: "/ports", shortcut: "07" },
+  { label: "Backtest", href: "/backtest", shortcut: "08" },
+  { label: "Risk", href: "/risk", shortcut: "09" },
+  { label: "Data", href: "/data", shortcut: "10" },
+  { label: "Audit", href: "/audit", shortcut: "11" },
 ];
 
 export default function SideNav() {

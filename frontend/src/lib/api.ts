@@ -12,6 +12,10 @@ import type {
   ErrorResponse,
   SeriesCatalogItem,
   ForecastResponse,
+  CargoRequirementItem,
+  FleetFeasibilityResponse,
+  FeasibilityEvaluateRequest,
+  FeasibilityResultResponse,
 } from "@/types/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -111,6 +115,27 @@ export async function trainForecast(
     body: JSON.stringify({ series_id: seriesId, horizon_days: horizonDays, force }),
   });
   return getForecast(target, seriesId, horizonDays);
+}
+
+// ── Feasibility ──────────────────────────────────────────────────────
+
+export async function getCargoRequirements(): Promise<CargoRequirementItem[]> {
+  return request<CargoRequirementItem[]>("/v1/feasibility/cargos");
+}
+
+export async function getCandidateFleetFeasibility(
+  cargoId: number
+): Promise<FleetFeasibilityResponse> {
+  return request<FleetFeasibilityResponse>(`/v1/feasibility/vessels/${cargoId}`);
+}
+
+export async function evaluateFeasibility(
+  body: FeasibilityEvaluateRequest
+): Promise<FeasibilityResultResponse> {
+  return request<FeasibilityResultResponse>("/v1/feasibility/evaluate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export { ApiError };
