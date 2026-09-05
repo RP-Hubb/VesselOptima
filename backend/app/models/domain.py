@@ -584,3 +584,53 @@ class FeasibilityCheck(AuditMixin, Base):
     vessel = relationship("VesselProfile")
     route = relationship("Route")
 
+
+# ── Procurement Strategy & Timing ────────────────────────────────────
+
+class ProcurementConfig(AuditMixin, Base):
+    """
+    Configurable procurement profile defining stage-by-stage administrative lead time
+    and operational boundaries per Section 5 of Build Specification.
+    """
+    __tablename__ = "procurement_configs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    profile_id = Column(String(64), unique=True, nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    tender_preparation_days = Column(Float, nullable=False, default=3.0)
+    bid_submission_days = Column(Float, nullable=False, default=5.0)
+    technical_evaluation_days = Column(Float, nullable=False, default=2.0)
+    commercial_evaluation_days = Column(Float, nullable=False, default=2.0)
+    approval_days = Column(Float, nullable=False, default=1.0)
+    award_days = Column(Float, nullable=False, default=1.0)
+    minimum_lead_time_days = Column(Float, nullable=False, default=14.0)
+    is_active = Column(Boolean, default=True, nullable=False)
+    data_classification = Column(String(64), default="CONFIGURED", nullable=False)
+    provenance = Column(JSON, nullable=True)
+
+
+class ProcurementEvaluation(AuditMixin, Base):
+    """
+    Procurement strategy evaluation candidate record capturing timing,
+    feasibility admittance, forecast signals, and transparent cost breakdown.
+    """
+    __tablename__ = "procurement_evaluations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True, index=True)
+    profile_id = Column(String(64), nullable=False)
+    strategy_type = Column(String(64), nullable=False)
+    status = Column(String(32), nullable=False)
+    timing_signal = Column(String(64), nullable=False)
+    candidate_data = Column(JSON, nullable=True)
+    timing_detail = Column(JSON, nullable=True)
+    cost_detail = Column(JSON, nullable=True)
+    forecast_detail = Column(JSON, nullable=True)
+    feasibility_detail = Column(JSON, nullable=True)
+    assumptions = Column(JSON, nullable=True)
+    provenance = Column(JSON, nullable=True)
+    evaluated_at = Column(DateTime, default=utcnow, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+
+    cargo = relationship("CargoParcel")
+

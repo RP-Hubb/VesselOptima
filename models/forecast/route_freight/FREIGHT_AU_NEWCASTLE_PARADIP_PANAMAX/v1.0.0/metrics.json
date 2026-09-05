@@ -1,0 +1,40 @@
+{
+  "selected_model": "SeasonalNaive_s7",
+  "selected_metrics": {
+    "mae": 1.1406,
+    "rmse": 1.4936,
+    "smape": 5.36,
+    "directional_accuracy": 65.56,
+    "total_eval_points": 90
+  },
+  "all_candidates": {
+    "NaivePersistence": {
+      "mae": 1.1643,
+      "rmse": 1.509,
+      "smape": 5.46,
+      "directional_accuracy": 60.0,
+      "total_eval_points": 90
+    },
+    "SeasonalNaive_s7": {
+      "mae": 1.1406,
+      "rmse": 1.4936,
+      "smape": 5.36,
+      "directional_accuracy": 65.56,
+      "total_eval_points": 90
+    },
+    "ExponentialSmoothing_ETS": {
+      "mae": 1.6117,
+      "rmse": 1.9885,
+      "smape": 7.64,
+      "directional_accuracy": 60.0,
+      "total_eval_points": 90
+    },
+    "XGBoostRegressor": {
+      "mae": 1.3361,
+      "rmse": 1.6859,
+      "smape": 6.5,
+      "directional_accuracy": 70.0,
+      "total_eval_points": 90
+    }
+  }
+}

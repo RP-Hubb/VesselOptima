@@ -44,11 +44,11 @@
 *   **DEPENDENCIES:** Core Domain Models, Offline Data Package
 
 ## 6. Procurement Engine
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Procurement windows, lead time configuration, contract strategy evaluation.
+*   **STATUS:** COMPLETE (Phase 5)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`ProcurementConfig`, `ProcurementEvaluation`), `backend/alembic/versions/5f6a7b8c9d0e_add_procurement_tables.py`, `backend/app/engines/procurement/` (`reason_codes.py`, `lead_time.py`, `timing.py`, `forecast_signal.py`, `cost_model.py`, `strategies.py`, `service.py`), `backend/app/schemas/procurement.py`, `backend/app/api/v1/procurement.py`, `backend/tests/test_procurement_engine.py`, `frontend/src/app/procurement/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Implement procurement timing models.
+*   **NEXT ACTION:** Proceed to Phase 6 (Idle & Alternative Employment Engine)
 *   **DEPENDENCIES:** Feasibility Engine, Forecasting Engine
 
 ## 7. Idle & Alternative Employment Engine

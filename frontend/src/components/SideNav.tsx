@@ -16,14 +16,15 @@ const NAV_ITEMS = [
   { label: "Market", href: "/", shortcut: "01" },
   { label: "Forecast", href: "/forecast", shortcut: "02" },
   { label: "Feasibility", href: "/feasibility", shortcut: "03" },
-  { label: "Optimizer", href: "/optimizer", shortcut: "04" },
-  { label: "Idle & Emp", href: "/idle", shortcut: "05" },
-  { label: "Scenarios", href: "/scenarios", shortcut: "06" },
-  { label: "Ports", href: "/ports", shortcut: "07" },
-  { label: "Backtest", href: "/backtest", shortcut: "08" },
-  { label: "Risk", href: "/risk", shortcut: "09" },
-  { label: "Data", href: "/data", shortcut: "10" },
-  { label: "Audit", href: "/audit", shortcut: "11" },
+  { label: "Procurement", href: "/procurement", shortcut: "04" },
+  { label: "Optimizer", href: "/optimizer", shortcut: "05" },
+  { label: "Idle & Emp", href: "/idle", shortcut: "06" },
+  { label: "Scenarios", href: "/scenarios", shortcut: "07" },
+  { label: "Ports", href: "/ports", shortcut: "08" },
+  { label: "Backtest", href: "/backtest", shortcut: "09" },
+  { label: "Risk", href: "/risk", shortcut: "10" },
+  { label: "Data", href: "/data", shortcut: "11" },
+  { label: "Audit", href: "/audit", shortcut: "12" },
 ];
 
 export default function SideNav() {

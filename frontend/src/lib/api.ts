@@ -16,9 +16,18 @@ import type {
   FleetFeasibilityResponse,
   FeasibilityEvaluateRequest,
   FeasibilityResultResponse,
+  ProcurementProfileItem,
+  ProcurementCompareRequest,
+  ProcurementCompareResponse,
 } from "@/types/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+function getApiBase(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname) {
+    return `http://${window.location.hostname}:8000`;
+  }
+  return "http://localhost:8000";
+}
 
 class ApiError extends Error {
   code: string;
@@ -35,7 +44,7 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = `${getApiBase()}${path}`;
 
   const response = await fetch(url, {
     headers: {
@@ -133,6 +142,38 @@ export async function evaluateFeasibility(
   body: FeasibilityEvaluateRequest
 ): Promise<FeasibilityResultResponse> {
   return request<FeasibilityResultResponse>("/v1/feasibility/evaluate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Procurement ──────────────────────────────────────────────────────
+
+export interface ProcurementProfilesResponse {
+  profiles: ProcurementProfileItem[];
+  default_profile_id: string;
+}
+
+export async function getProcurementProfiles(): Promise<ProcurementProfilesResponse> {
+  return request<ProcurementProfilesResponse>("/v1/procurement/config");
+}
+
+export async function getProcurementCandidates(
+  cargoId: number,
+  profileId?: string,
+  asOfDate?: string
+): Promise<ProcurementCompareResponse> {
+  const params = new URLSearchParams();
+  if (profileId) params.append("profile_id", profileId);
+  if (asOfDate) params.append("as_of_date", asOfDate);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request<ProcurementCompareResponse>(`/v1/procurement/candidates/${cargoId}${query}`);
+}
+
+export async function compareProcurementStrategies(
+  body: ProcurementCompareRequest
+): Promise<ProcurementCompareResponse> {
+  return request<ProcurementCompareResponse>("/v1/procurement/compare", {
     method: "POST",
     body: JSON.stringify(body),
   });

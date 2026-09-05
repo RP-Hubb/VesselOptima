@@ -327,16 +327,16 @@ class FeasibilityService:
             results.append({
                 "vessel_id": v["id"],
                 "vessel_name": v["name"],
-                "vessel_class": eval_res["vessel_class"],
+                "vessel_class": eval_res.get("vessel_class") or v.get("vessel_class") or "UNKNOWN",
                 "cargo_capacity": v["cargo_capacity"],
                 "draft": v["draft"],
                 "loa": v["loa"],
                 "beam": v["beam"],
-                "is_feasible": eval_res["is_feasible"],
-                "primary_reason_code": eval_res["primary_reason_code"],
-                "primary_reason_description": eval_res["primary_reason_description"],
-                "failed_checks": eval_res["failed_checks"],
-                "warnings_count": len(eval_res["warnings"]),
+                "is_feasible": eval_res.get("is_feasible", False),
+                "primary_reason_code": eval_res.get("primary_reason_code"),
+                "primary_reason_description": eval_res.get("primary_reason_description"),
+                "failed_checks": eval_res.get("failed_checks", []),
+                "warnings_count": len(eval_res.get("warnings", [])),
             })
 
         # Deterministic sorting by vessel ID (no economic score)

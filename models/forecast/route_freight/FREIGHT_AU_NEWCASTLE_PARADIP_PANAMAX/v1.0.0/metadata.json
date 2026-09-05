@@ -1,0 +1,49 @@
+{
+  "model_id": "forecast_route_freight_FREIGHT_AU_NEWCASTLE_PARADIP_PANAMAX_v1.0.0",
+  "model_version": "v1.0.0",
+  "target": "route_freight",
+  "series_id": "FREIGHT_AU_NEWCASTLE_PARADIP_PANAMAX",
+  "target_unit": "USD_PER_MT",
+  "frequency": "DAILY",
+  "training_start": "2024-01-01",
+  "training_end": "2026-08-31",
+  "total_observations": 974,
+  "forecast_horizons": [
+    7,
+    14,
+    30
+  ],
+  "features": [
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_7",
+    "lag_14",
+    "lag_30",
+    "rolling_mean_7",
+    "rolling_std_7",
+    "rolling_mean_14",
+    "rolling_mean_30",
+    "dayofweek",
+    "month",
+    "dayofyear"
+  ],
+  "feature_version": "1.0.0",
+  "validation_method": "expanding_window_walk_forward",
+  "validation_folds": 3,
+  "selected_model": "SeasonalNaive_s7",
+  "selected_metrics": {
+    "mae": 1.1406,
+    "rmse": 1.4936,
+    "smape": 5.36,
+    "directional_accuracy": 65.56,
+    "total_eval_points": 90
+  },
+  "provenance": "PROXY",
+  "source_dataset": "route_freight/FREIGHT_AU_NEWCASTLE_PARADIP_PANAMAX",
+  "package_id": "demo-v1",
+  "package_version": "1.0.0",
+  "random_seed": 20260905,
+  "created_at": "2026-09-05T00:00:00Z",
+  "artifact_hash": "e09b23f16ad8e2f9d1f2e0f112b15b711a38fb672774142505931f287670d9ef"
+}

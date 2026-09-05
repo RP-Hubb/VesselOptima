@@ -21,7 +21,7 @@ from app.core.exceptions import (
 )
 from app.db.base import Base
 from app.db.session import engine
-from app.api.v1 import data, feasibility, forecast, health, runtime
+from app.api.v1 import data, feasibility, forecast, health, procurement, runtime
 
 
 
@@ -106,6 +106,7 @@ app.include_router(runtime.router, prefix="/v1")
 app.include_router(data.router, prefix="/v1")
 app.include_router(forecast.router, prefix="/v1")
 app.include_router(feasibility.router, prefix="/v1")
+app.include_router(procurement.router, prefix="/v1")
 
 
 

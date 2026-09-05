@@ -46,7 +46,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # ── CORS ─────────────────────────────────────────────────────
-    cors_origins: List[str] = ["http://localhost:3000"]
+    cors_origins: List[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
     # ── Offline package ──────────────────────────────────────────
     offline_package_dir: str = "../data/offline/packages"

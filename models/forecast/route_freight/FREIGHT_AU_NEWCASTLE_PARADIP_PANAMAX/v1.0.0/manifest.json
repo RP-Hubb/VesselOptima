@@ -1,0 +1,17 @@
+{
+  "files": [
+    {
+      "file": "model.joblib",
+      "sha256": "e09b23f16ad8e2f9d1f2e0f112b15b711a38fb672774142505931f287670d9ef"
+    },
+    {
+      "file": "metadata.json",
+      "sha256": "1575092364eeefc0e76066b54f4d88b48598a99983a3321a6575aee45a70289f"
+    },
+    {
+      "file": "metrics.json",
+      "sha256": "c72003a6decdf4b23277dd74fb8813e9c76d627377ffd3463607147a18de385d"
+    }
+  ],
+  "created_at": "2026-09-05T12:46:51.354357+00:00"
+}

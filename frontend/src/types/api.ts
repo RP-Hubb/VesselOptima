@@ -229,3 +229,124 @@ export interface FeasibilityResultResponse {
   evaluated_at: string;
 }
 
+// ── Procurement ──────────────────────────────────────────────────────
+
+export interface ProcurementProfileItem {
+  profile_id: string;
+  name: string;
+  tender_preparation_days: number;
+  bid_submission_days: number;
+  technical_evaluation_days: number;
+  commercial_evaluation_days: number;
+  approval_days: number;
+  award_days: number;
+  minimum_lead_time_days: number;
+  description: string;
+  data_classification?: string;
+}
+
+export interface StrategyEvaluationItem {
+  strategy_type: string;
+  strategy_name: string;
+  description?: string | null;
+  status: "FEASIBLE" | "INFEASIBLE";
+  primary_reason_code?: string | null;
+  primary_reason_description?: string | null;
+  timing_signal?: "WINDOW_OPEN" | "WINDOW_CLOSING" | "IMMEDIATE_PROCURE" | "LEAD_TIME_EXCEEDED" | "DEADLINE_MISSED" | "WINDOW_INVALID" | null;
+  contract_duration_days?: number | null;
+  voyage_count?: number | null;
+  market_exposure?: string | null;
+  commitment_level?: string | null;
+  timing?: {
+    origin_laycan_start?: string;
+    origin_laycan_end?: string;
+    delivery_deadline?: string;
+    as_of_date?: string;
+    total_lead_time_days?: number;
+    earliest_procurement_date?: string;
+    procurement_completion_date?: string;
+    latest_safe_procurement_date?: string;
+    remaining_decision_window_days?: number;
+    timing_signal?: string;
+    lead_time_stages?: Record<string, number>;
+    [key: string]: unknown;
+  } | null;
+  forecast_evidence?: {
+    forecast_target?: string;
+    forecast_series_id?: string;
+    current_rate?: number;
+    forecast_horizon_days?: number;
+    forecast_rate_mean?: number;
+    lower_bound_95?: number;
+    upper_bound_95?: number;
+    interval_spread_ratio?: number;
+    trajectory_slope?: string;
+    uncertainty_level?: string;
+    evidence_note?: string;
+    provenance?: Record<string, unknown>;
+    [key: string]: unknown;
+  } | null;
+  cost_summary?: {
+    estimated_freight_cost?: number;
+    estimated_bunker_cost?: number;
+    estimated_port_dues?: number;
+    procurement_administration_fee?: number;
+    expected_total_cost?: number;
+    discount_factor?: number;
+    currency?: string;
+    note?: string;
+    [key: string]: unknown;
+  } | null;
+  feasibility_summary?: {
+    candidate_fleet_size?: number;
+    feasible_vessels_count?: number;
+    feasible_vessel_ids?: number[];
+    feasible_vessel_names?: string[];
+    rejection_summary?: Record<string, number>;
+    [key: string]: unknown;
+  } | null;
+  candidate_metadata?: {
+    candidate_status?: string;
+    optimization_ready?: boolean;
+    contract_structure?: string;
+    audit_trail?: Record<string, unknown>;
+    [key: string]: unknown;
+  } | null;
+  provenance?: {
+    package_id?: string;
+    package_version?: string;
+    data_type?: string;
+    air_gap_verified?: boolean;
+    [key: string]: unknown;
+  } | null;
+}
+
+export interface ProcurementCompareRequest {
+  cargo_id: number;
+  profile_id?: string | null;
+  strategy_types?: string[] | null;
+  as_of_date?: string | null;
+  custom_stages?: Record<string, number> | null;
+  persist?: boolean;
+}
+
+export interface ProcurementCompareResponse {
+  cargo_id: number;
+  commodity: string;
+  volume_mt: number;
+  origin_port: string;
+  destination_port: string;
+  laycan_start: string;
+  laycan_end: string;
+  delivery_deadline: string;
+  as_of_date: string;
+  procurement_profile: Record<string, unknown>;
+  procurement_lead_time_days: number;
+  strategies_evaluated_count: number;
+  feasible_strategies_count: number;
+  infeasible_strategies_count: number;
+  strategies: StrategyEvaluationItem[];
+  advisory_note: string;
+  evaluated_at: string;
+}
+
