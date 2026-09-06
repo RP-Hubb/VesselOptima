@@ -562,3 +562,134 @@ export interface CandidateCompareResponse {
 }
 
 
+// ── Phase 7: Optimization Engine Types ───────────────────────────────
+
+export interface SolveFleetAssignmentRequest {
+  scenario?: string | null;
+  as_of_date?: string | null;
+  vessel_id?: number | null;
+  cargo_id?: number | null;
+  alpha_idle_weight?: number;
+  beta_ballast_penalty?: number;
+  default_unserved_penalty?: number;
+  cargo_penalties?: Record<number, number> | null;
+  time_limit_seconds?: number | null;
+  mip_gap?: number;
+  persist?: boolean;
+}
+
+export interface ObjectiveDecomposition {
+  total_gross_revenue: number;
+  total_voyage_cost: number;
+  total_net_contribution: number;
+  total_avoided_idle_cost: number;
+  total_ballast_penalty: number;
+  total_unserved_penalty: number;
+  global_objective_value: number;
+}
+
+export interface AssignmentItem {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  cargo_id: number | null;
+  cargo_name: string;
+  is_selected: boolean;
+  selection_status: "SELECTED" | "MODEL_REJECTED" | "INFEASIBLE_UPSTREAM" | "UNASSIGNED" | string;
+  start_time: string | null;
+  end_time: string | null;
+  expected_revenue: number;
+  voyage_cost: number;
+  gross_contribution: number;
+  idle_days_saved: number;
+  avoided_idle_cost: number;
+  ballast_distance_nm: number;
+  ballast_days: number;
+  voyage_days: number;
+  trade_off_reason_code: string;
+  trade_off_explanation: string;
+  assignment_metadata?: Record<string, unknown> | null;
+}
+
+export interface UnassignedCargoItem {
+  cargo_id: number;
+  cargo_name: string;
+  unserved_penalty: number;
+  reason_code: string;
+  reason_explanation: string;
+}
+
+export interface OptimizationResultResponse {
+  run_id: string;
+  status: "OPTIMAL" | "FEASIBLE" | "INFEASIBLE" | "UNBOUNDED" | "TIME_LIMIT" | "SOLVER_ERROR" | "EMPTY_MODEL" | string;
+  objective_value: number;
+  decomposition: ObjectiveDecomposition;
+  selected_assignments: AssignmentItem[];
+  rejected_opportunities: AssignmentItem[];
+  unassigned_cargos: UnassignedCargoItem[];
+  vessel_utilization: {
+    total_vessels: number;
+    assigned_vessels: number;
+    idle_vessels: number;
+    utilization_pct: number;
+    total_voyage_days: number;
+    total_ballast_days: number;
+    assigned_vessel_ids?: number[];
+    [key: string]: unknown;
+  };
+  solver_metadata: Record<string, unknown>;
+  constraint_summary: {
+    total_constraints: number;
+    breakdown?: Record<string, number>;
+    [key: string]: unknown;
+  };
+  audit_trail: Array<{
+    timestamp: string;
+    event: string;
+    [key: string]: unknown;
+  }>;
+  solve_time_seconds: number;
+  created_at: string;
+}
+
+export interface OptimizationRunSummary {
+  run_id: string;
+  status: string;
+  objective_value: number | null;
+  total_revenue: number | null;
+  total_cost: number | null;
+  total_contribution: number | null;
+  avoided_idle_cost: number | null;
+  solver_name: string | null;
+  solve_time_seconds: number | null;
+  result_summary: Record<string, unknown> | null;
+  created_at: string | null;
+}
+
+export interface CompareRunsResponse {
+  run_a: {
+    run_id: string;
+    status: string;
+    objective_value: number;
+    total_revenue: number;
+    total_cost: number;
+    total_contribution: number;
+    assignments_count: number;
+  };
+  run_b: {
+    run_id: string;
+    status: string;
+    objective_value: number;
+    total_revenue: number;
+    total_cost: number;
+    total_contribution: number;
+    assignments_count: number;
+  };
+  comparison: {
+    objective_delta: number;
+    pct_improvement: number;
+    superior_run: string;
+  };
+}
+
+

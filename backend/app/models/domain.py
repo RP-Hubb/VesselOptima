@@ -74,7 +74,12 @@ class OptimizationStatusEnum(str, enum.Enum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
     OPTIMAL = "OPTIMAL"
+    FEASIBLE = "FEASIBLE"
     INFEASIBLE = "INFEASIBLE"
+    UNBOUNDED = "UNBOUNDED"
+    TIME_LIMIT = "TIME_LIMIT"
+    SOLVER_ERROR = "SOLVER_ERROR"
+    EMPTY_MODEL = "EMPTY_MODEL"
     ERROR = "ERROR"
 
 
@@ -443,18 +448,57 @@ class OptimizationRun(AuditMixin, Base):
     __tablename__ = "optimization_runs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(128), unique=True, index=True, nullable=True)
     scenario_id = Column(Integer, ForeignKey("scenarios.id"), nullable=True)
     status = Column(Enum(OptimizationStatusEnum), default=OptimizationStatusEnum.QUEUED)
     objective_value = Column(Float, nullable=True)
+    total_revenue = Column(Float, nullable=True)
+    total_cost = Column(Float, nullable=True)
+    total_contribution = Column(Float, nullable=True)
+    avoided_idle_cost = Column(Float, nullable=True)
+    solver_name = Column(String(64), nullable=True)
     solver_version = Column(String(64), nullable=True)
+    solver_status = Column(String(64), nullable=True)
     solve_time_seconds = Column(Float, nullable=True)
     runtime_mode = Column(Enum(RuntimeModeEnum), nullable=False)
     data_context_id = Column(String(64), nullable=True)
     offline_package_id = Column(String(64), nullable=True)
+    objective_decomposition = Column(JSON, nullable=True)
+    solver_metadata = Column(JSON, nullable=True)
     result_summary = Column(JSON, nullable=True)
     infeasibility_reason = Column(Text, nullable=True)
+    audit_trail = Column(JSON, nullable=True)
 
     scenario = relationship("Scenario")
+    assignments = relationship("OptimizationAssignment", back_populates="optimization_run", cascade="all, delete-orphan")
+
+
+class OptimizationAssignment(AuditMixin, Base):
+    """Individual candidate assignment decision within an optimization run."""
+    __tablename__ = "optimization_assignments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    optimization_run_id = Column(Integer, ForeignKey("optimization_runs.id"), nullable=False, index=True)
+    candidate_id = Column(String(128), nullable=False, index=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=False, index=True)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True, index=True)
+    is_selected = Column(Boolean, nullable=False, default=False)
+    selection_status = Column(String(64), nullable=False)  # SELECTED, MODEL_REJECTED, INFEASIBLE_UPSTREAM, UNASSIGNED
+    start_time = Column(DateTime, nullable=True)
+    end_time = Column(DateTime, nullable=True)
+    expected_revenue = Column(Float, nullable=True)
+    voyage_cost = Column(Float, nullable=True)
+    gross_contribution = Column(Float, nullable=True)
+    ballast_distance_nm = Column(Float, nullable=True)
+    ballast_days = Column(Float, nullable=True)
+    voyage_days = Column(Float, nullable=True)
+    assignment_metadata = Column(JSON, nullable=True)
+    trade_off_notes = Column(Text, nullable=True)
+    runtime_mode = Column(Enum(RuntimeModeEnum), nullable=False, default=RuntimeModeEnum.DEMO if hasattr(RuntimeModeEnum, 'DEMO') else RuntimeModeEnum.OFFLINE_DEMO)
+
+    optimization_run = relationship("OptimizationRun", back_populates="assignments")
+    vessel = relationship("VesselProfile")
+    cargo = relationship("CargoParcel")
 
 
 # ── Recommendations ──────────────────────────────────────────────────

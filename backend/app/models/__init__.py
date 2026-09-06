@@ -34,6 +34,7 @@ from app.models.domain import (
     ProcurementEvaluation,
     EmploymentOpportunity,
     IdleAssessment,
+    OptimizationAssignment,
 )
 
 __all__ = [
@@ -56,6 +57,7 @@ __all__ = [
     "Forecast",
     "Scenario",
     "OptimizationRun",
+    "OptimizationAssignment",
     "Recommendation",
     "AuditEvent",
     "IdleEmploymentEvaluation",

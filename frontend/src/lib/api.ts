@@ -27,6 +27,10 @@ import type {
   EmploymentCandidateResponse,
   CandidateMatrixResponse,
   CandidateCompareResponse,
+  SolveFleetAssignmentRequest,
+  OptimizationResultResponse,
+  OptimizationRunSummary,
+  CompareRunsResponse,
 } from "@/types/api";
 
 function getApiBase(): string {
@@ -257,6 +261,39 @@ export async function compareEmploymentCandidates(body: {
   as_of_date?: string;
 }): Promise<CandidateCompareResponse> {
   return request<CandidateCompareResponse>("/v1/employment/compare", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Phase 7: Optimization Engine API ─────────────────────────────────
+
+export async function solveFleetOptimization(
+  body: SolveFleetAssignmentRequest
+): Promise<OptimizationResultResponse> {
+  return request<OptimizationResultResponse>("/v1/optimization/solve", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getOptimizationRuns(
+  limit: number = 50
+): Promise<OptimizationRunSummary[]> {
+  return request<OptimizationRunSummary[]>(`/v1/optimization/runs?limit=${limit}`);
+}
+
+export async function getOptimizationRun(
+  runId: string
+): Promise<OptimizationResultResponse> {
+  return request<OptimizationResultResponse>(`/v1/optimization/runs/${encodeURIComponent(runId)}`);
+}
+
+export async function compareOptimizationRuns(body: {
+  run_id_a: string;
+  run_id_b: string;
+}): Promise<CompareRunsResponse> {
+  return request<CompareRunsResponse>("/v1/optimization/compare", {
     method: "POST",
     body: JSON.stringify(body),
   });

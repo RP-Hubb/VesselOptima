@@ -60,12 +60,12 @@
 *   **DEPENDENCIES:** Feasibility Engine, Procurement Engine, Offline Data Package
 
 ## 8. MILP Optimizer
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** PuLP/HiGHS optimization logic, objective function, constraints.
+*   **STATUS:** COMPLETE (Phase 7)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`OptimizationRun`, `OptimizationAssignment`), `backend/alembic/versions/7b8c9d0e1f2a_add_optimization_tables.py`, `backend/app/engines/optimization/` (`reason_codes.py`, `variables.py`, `constraints.py`, `objective.py`, `solver.py`, `model.py`, `result.py`, `service.py`, `__init__.py`), `backend/app/schemas/optimization.py`, `backend/app/api/v1/optimization.py`, `backend/tests/test_optimization_engine.py`, `frontend/src/app/optimizer/page.tsx`, `frontend/src/app/optimization/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_7_SPECIFICATION.md`, `docs/PHASE_7_IMPLEMENTATION.md`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Build optimizer service for vessel allocation and contract strategy.
-*   **DEPENDENCIES:** Procurement Engine, Idle Engine
+*   **NEXT ACTION:** Proceed to Phase 8 (Risk & Scenario Engine)
+*   **DEPENDENCIES:** Feasibility Engine, Procurement Engine, Idle Engine
 
 ## 9. Risk + Scenarios
 *   **STATUS:** MISSING
