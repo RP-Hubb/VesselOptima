@@ -1300,4 +1300,153 @@ export interface DecisionConfigurationResponse {
   effective_date: string;
 }
 
+// ── Phase 12: Maritime Data Integration & Data Quality Governance ─────
+
+export type DatasetType =
+  | "VESSEL_MASTER"
+  | "PORT_REFERENCE"
+  | "CARGO_DEMAND"
+  | "VOYAGE_FIXTURE"
+  | "BUNKER_SERIES"
+  | "OPERATIONAL_EVENT";
+
+export type DatasetStatus =
+  | "IMPORTED"
+  | "VALIDATING"
+  | "VALID"
+  | "INVALID"
+  | "QUARANTINED"
+  | "APPROVED"
+  | "REJECTED"
+  | "SUPERSEDED";
+
+export type ValidationLayer = "STRUCTURAL" | "TYPE" | "PHYSICAL" | "RELATIONAL";
+
+export type QuarantineSeverity = "WARNING" | "ROW_QUARANTINE" | "DATASET_REJECTION";
+
+export type FreshnessStatus = "CURRENT" | "AGING" | "STALE" | "UNKNOWN";
+
+export type ImpactLevel = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type RecordChangeType = "ADDED" | "REMOVED" | "MODIFIED" | "UNCHANGED";
+
+export interface FieldValidationIssue {
+  record_index: number;
+  business_key: string;
+  field_name: string;
+  original_value: unknown;
+  layer: ValidationLayer;
+  error_code: string;
+  severity: QuarantineSeverity;
+  message: string;
+}
+
+export interface DatasetQualityReport {
+  overall_score: number;
+  completeness_score: number;
+  validity_score: number;
+  consistency_score: number;
+  uniqueness_score: number;
+  timeliness_score: number;
+  provenance_score: number;
+  weights_snapshot: Record<string, number>;
+  freshness_status: FreshnessStatus;
+}
+
+export interface DatasetResponse {
+  dataset_id: string;
+  dataset_type: DatasetType;
+  name: string;
+  description: string;
+  current_version: number;
+  status: DatasetStatus;
+  content_hash: string;
+  quality_score: number;
+  freshness_status: FreshnessStatus;
+  record_count: number;
+  created_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+  quality_report?: DatasetQualityReport;
+  validation_summary?: Record<string, boolean>;
+  error_counts?: Record<string, number>;
+  provenance?: Record<string, unknown>;
+  sample_records?: Record<string, unknown>[];
+}
+
+export interface QuarantineItemResponse {
+  id: number;
+  dataset_id: string;
+  version_number: number;
+  record_index: number;
+  business_key: string;
+  field_name: string;
+  error_code: string;
+  severity: string;
+  original_value: string | null;
+  message: string;
+  created_at: string;
+}
+
+export interface RecordChangeItem {
+  record_identifier: string;
+  change_type: RecordChangeType | string;
+  field_diffs?: Record<string, { old: unknown; new: unknown }>;
+}
+
+export interface DatasetDiffResponse {
+  dataset_id: string;
+  base_version: number;
+  target_version: number;
+  total_changes: number;
+  changes: RecordChangeItem[];
+}
+
+export interface DatasetImpactResponse {
+  dataset_id: string;
+  dataset_type: string;
+  version_number: number;
+  impact_level: ImpactLevel | string;
+  affected_engines: string[];
+  affected_runs: string[];
+  requires_recalculation: boolean;
+  stale_decision_packages: string[];
+  rationale: string;
+}
+
+export interface DatasetImportRequest {
+  dataset_type: DatasetType;
+  name: string;
+  description?: string;
+  records?: Record<string, unknown>[];
+  raw_content?: string;
+  filename?: string;
+  actor?: string;
+  actor_role?: string;
+}
+
+export interface DatasetVersionImportRequest {
+  change_summary: string;
+  records?: Record<string, unknown>[];
+  raw_content?: string;
+  filename?: string;
+  actor?: string;
+  actor_role?: string;
+}
+
+export interface DatasetApprovalRequest {
+  actor: string;
+  actor_role: string;
+  notes?: string;
+}
+
+export interface DatasetRejectionRequest {
+  actor: string;
+  actor_role: string;
+  reason: string;
+  notes?: string;
+}
+
 

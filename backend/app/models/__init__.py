@@ -53,6 +53,15 @@ from app.models.domain import (
     DecisionConfiguration,
     ConfigurationChange,
     DecisionOverride,
+    GovernanceDataset,
+    DatasetVersion,
+    DatasetRecord,
+    DatasetValidation,
+    DatasetQuality,
+    DatasetProvenance,
+    QuarantineRecord,
+    DatasetChange,
+    DatasetImpact,
 )
 
 __all__ = [
@@ -105,6 +114,15 @@ __all__ = [
     "DecisionConfiguration",
     "ConfigurationChange",
     "DecisionOverride",
+    "GovernanceDataset",
+    "DatasetVersion",
+    "DatasetRecord",
+    "DatasetValidation",
+    "DatasetQuality",
+    "DatasetProvenance",
+    "QuarantineRecord",
+    "DatasetChange",
+    "DatasetImpact",
 ]
 
 

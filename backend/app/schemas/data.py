@@ -46,3 +46,86 @@ class PackageVerificationResponse(BaseModel):
     total_rows: int
     provenance: str
     verified_at: str
+
+
+# ── Phase 12 Data Governance Schemas ───────────────────────────────────
+
+class DatasetImportRequest(BaseModel):
+    dataset_type: str
+    name: str
+    records: List[dict]
+    filename: Optional[str] = None
+    description: Optional[str] = None
+    actor: str = "data_engineer"
+    actor_role: str = "ANALYST"
+    dataset_id: Optional[str] = None
+
+
+class DatasetVersionImportRequest(BaseModel):
+    records: List[dict]
+    change_summary: str
+    filename: Optional[str] = None
+    actor: str = "data_engineer"
+
+
+class DatasetApprovalRequest(BaseModel):
+    actor: str = "fleet_director"
+    actor_role: str = "APPROVER"
+    notes: Optional[str] = None
+
+
+class DatasetRejectionRequest(BaseModel):
+    reason: str
+    actor: str = "fleet_director"
+    actor_role: str = "APPROVER"
+
+
+class DatasetResponse(BaseModel):
+    id: Optional[int] = None
+    dataset_id: str
+    dataset_type: str
+    name: str
+    description: Optional[str] = None
+    current_version: int
+    status: str
+    content_hash: str
+    quality_score: float
+    freshness_status: str
+    record_count: int
+    created_by: str
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+class QuarantineItemResponse(BaseModel):
+    id: Optional[int] = None
+    record_identifier: Optional[str] = None
+    field_name: Optional[str] = None
+    original_value: Optional[str] = None
+    error_code: str
+    severity: str
+    message: str
+    raw_record: Optional[dict] = None
+    quarantined_at: Optional[str] = None
+
+
+class DatasetDiffResponse(BaseModel):
+    dataset_id: str
+    base_version: int
+    target_version: int
+    total_changes: int
+    changes: List[dict]
+
+
+class DatasetImpactResponse(BaseModel):
+    dataset_id: str
+    dataset_type: str
+    version_number: int
+    impact_level: str
+    affected_engines: List[str]
+    affected_runs: List[str]
+    requires_recalculation: bool
+    stale_decision_packages: List[str]
+    rationale: str
+

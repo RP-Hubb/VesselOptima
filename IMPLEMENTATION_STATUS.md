@@ -99,11 +99,11 @@
 *   **NEXT ACTION:** Proceed to Phase 12 (Backtesting Engine & Historical Validation)
 *   **DEPENDENCIES:** Decision Intelligence (Phase 10), Risk Engine (Phase 9), Scenario Engine (Phase 8), MILP Optimizer (Phase 7)
 
-## 13. Backtest Engine (Phase 12)
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Chronological simulation, baseline comparators, metrics aggregation.
+## 13. Maritime Data Integration & Data Quality Governance (Phase 12)
+*   **STATUS:** COMPLETE (Phase 12: Air-Gapped Ingestion, 4-Tier Validation, 6-Factor Quality Scoring, SHA-256 Hashing, Version Diff Engine & Downstream Decision Impact Analysis)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`GovernanceDataset`, `DatasetVersion`, `DatasetRecord`, `DatasetValidation`, `DatasetQuality`, `DatasetProvenance`, `QuarantineRecord`, `DatasetChange`, `DatasetImpact`), `backend/alembic/versions/12a3b4c5d6e7_add_data_governance_tables.py`, `backend/app/engines/data/` (`reason_codes.py`, `contracts.py`, `models.py`, `normalization.py`, `validation.py`, `quarantine.py`, `quality.py`, `hashing.py`, `versioning.py`, `impact.py`, `service.py`, `adapters/base.py`, `adapters/local_file.py`, `__init__.py`), `backend/app/schemas/data.py`, `backend/app/api/v1/data.py`, `backend/tests/test_data_governance.py` (25/25 PASS), `frontend/src/app/data/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_12_SPECIFICATION.md`, `docs/PHASE_12_IMPLEMENTATION.md`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Implement backtesting framework.
-*   **DEPENDENCIES:** Risk + Scenarios + Decision Engine
+*   **NEXT ACTION:** Complete. Full regression 232/232 PASS. Ready for Phase 13 (Historical Backtesting Engine).
+*   **DEPENDENCIES:** Data Integration & Quality Governance (Phase 12), Decision Governance (Phase 11), Decision Engine (Phase 10), Risk Engine (Phase 9), Scenario Engine (Phase 8), MILP Optimizer (Phase 7)
 

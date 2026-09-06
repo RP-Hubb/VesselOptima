@@ -50,6 +50,15 @@ import type {
   ReproductionResponse,
   DecisionRecordExportResponse,
   DecisionConfigurationResponse,
+  DatasetType,
+  DatasetResponse,
+  QuarantineItemResponse,
+  DatasetDiffResponse,
+  DatasetImpactResponse,
+  DatasetImportRequest,
+  DatasetVersionImportRequest,
+  DatasetApprovalRequest,
+  DatasetRejectionRequest,
 } from "@/types/api";
 
 
@@ -570,6 +579,92 @@ export async function getGovernanceActiveConfiguration(): Promise<DecisionConfig
 
 export async function getGovernanceDemoPackage(scenarioType: string = "BASELINE"): Promise<DecisionPackageResponse> {
   return request<DecisionPackageResponse>(`/v1/governance/demo/${scenarioType}`);
+}
+
+// ── Phase 12: Maritime Data Integration & Quality Governance ─────────
+
+export async function importDataset(body: DatasetImportRequest): Promise<DatasetResponse> {
+  return request<DatasetResponse>("/v1/data/import", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getDatasets(
+  datasetType?: DatasetType | string,
+  limit: number = 50
+): Promise<DatasetResponse[]> {
+  const params = new URLSearchParams();
+  if (datasetType) params.append("dataset_type", datasetType);
+  if (limit) params.append("limit", limit.toString());
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  return request<DatasetResponse[]>(`/v1/data/datasets${qs}`);
+}
+
+export async function getDataset(datasetId: string): Promise<DatasetResponse> {
+  return request<DatasetResponse>(`/v1/data/datasets/${datasetId}`);
+}
+
+export async function importDatasetVersion(
+  datasetId: string,
+  body: DatasetVersionImportRequest
+): Promise<DatasetResponse> {
+  return request<DatasetResponse>(`/v1/data/datasets/${datasetId}/version`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function approveDataset(
+  datasetId: string,
+  body: DatasetApprovalRequest
+): Promise<DatasetResponse> {
+  return request<DatasetResponse>(`/v1/data/datasets/${datasetId}/approve`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function rejectDataset(
+  datasetId: string,
+  body: DatasetRejectionRequest
+): Promise<DatasetResponse> {
+  return request<DatasetResponse>(`/v1/data/datasets/${datasetId}/reject`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getDatasetQuarantine(
+  datasetId: string
+): Promise<QuarantineItemResponse[]> {
+  return request<QuarantineItemResponse[]>(`/v1/data/datasets/${datasetId}/quarantine`);
+}
+
+export async function getDatasetDiff(
+  datasetId: string,
+  baseVersion?: number,
+  currentVersion?: number
+): Promise<DatasetDiffResponse> {
+  const params = new URLSearchParams();
+  if (baseVersion !== undefined) params.append("base_version", baseVersion.toString());
+  if (currentVersion !== undefined) params.append("current_version", currentVersion.toString());
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  return request<DatasetDiffResponse>(`/v1/data/datasets/${datasetId}/diff${qs}`);
+}
+
+export async function getDatasetImpact(
+  datasetId: string,
+  versionNumber?: number
+): Promise<DatasetImpactResponse> {
+  const params = new URLSearchParams();
+  if (versionNumber !== undefined) params.append("version_number", versionNumber.toString());
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  return request<DatasetImpactResponse>(`/v1/data/datasets/${datasetId}/impact${qs}`);
+}
+
+export async function seedDataDemo(scenario: string = "CANONICAL"): Promise<DatasetResponse> {
+  return request<DatasetResponse>(`/v1/data/demo/seed?scenario=${scenario}`);
 }
 
 export { ApiError };

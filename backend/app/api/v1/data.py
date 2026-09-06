@@ -5,7 +5,7 @@ VesselOptima — API Endpoints: Data & Offline Packages
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -138,3 +138,178 @@ def load_offline_package(
             status_code=500,
             detail={"code": "SERVER_ERROR", "message": str(e)},
         )
+
+
+# ── Phase 12 Data Governance Endpoints ─────────────────────────────────
+
+from app.engines.data import DataGovernanceService
+from app.schemas.data import (
+    DatasetApprovalRequest,
+    DatasetDiffResponse,
+    DatasetImpactResponse,
+    DatasetImportRequest,
+    DatasetRejectionRequest,
+    DatasetResponse,
+    DatasetVersionImportRequest,
+    QuarantineItemResponse,
+)
+
+
+@router.post("/import", response_model=dict)
+def import_dataset(
+    req: DatasetImportRequest,
+    db: Session = Depends(get_db),
+):
+    """Ingests untrusted maritime dataset through the 4-layer validation & governance pipeline."""
+    try:
+        svc = DataGovernanceService(db)
+        return svc.import_dataset(
+            dataset_type=req.dataset_type,
+            name=req.name,
+            source_payload=req.records,
+            filename=req.filename,
+            description=req.description,
+            actor=req.actor,
+            actor_role=req.actor_role,
+            dataset_id=req.dataset_id,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+@router.get("/datasets", response_model=List[DatasetResponse])
+def list_datasets(
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    """Lists registered maritime datasets."""
+    svc = DataGovernanceService(db)
+    return svc.list_datasets(limit=limit)
+
+
+@router.get("/datasets/{dataset_id}", response_model=DatasetResponse)
+def get_dataset(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves full details of a specific dataset."""
+    svc = DataGovernanceService(db)
+    ds = svc.get_dataset(dataset_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+    return ds
+
+
+@router.post("/datasets/{dataset_id}/version", response_model=dict)
+def import_dataset_version(
+    dataset_id: str,
+    req: DatasetVersionImportRequest,
+    db: Session = Depends(get_db),
+):
+    """Ingests an incremental immutable version (V1 -> V2) with diffing and impact analysis."""
+    try:
+        svc = DataGovernanceService(db)
+        return svc.import_new_version(
+            dataset_id=dataset_id,
+            source_payload=req.records,
+            change_summary=req.change_summary,
+            filename=req.filename,
+            actor=req.actor,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Version import failed: {str(e)}")
+
+
+@router.post("/datasets/{dataset_id}/approve", response_model=DatasetResponse)
+def approve_dataset(
+    dataset_id: str,
+    req: DatasetApprovalRequest,
+    db: Session = Depends(get_db),
+):
+    """Formally approves a validated dataset for consumption by decision engines."""
+    try:
+        svc = DataGovernanceService(db)
+        return svc.approve_dataset(
+            dataset_id=dataset_id,
+            actor=req.actor,
+            actor_role=req.actor_role,
+            notes=req.notes,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
+
+
+@router.post("/datasets/{dataset_id}/reject", response_model=DatasetResponse)
+def reject_dataset(
+    dataset_id: str,
+    req: DatasetRejectionRequest,
+    db: Session = Depends(get_db),
+):
+    """Formally rejects a dataset with recorded reason."""
+    try:
+        svc = DataGovernanceService(db)
+        return svc.reject_dataset(
+            dataset_id=dataset_id,
+            reason=req.reason,
+            actor=req.actor,
+            actor_role=req.actor_role,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rejection failed: {str(e)}")
+
+
+@router.get("/datasets/{dataset_id}/quarantine", response_model=List[QuarantineItemResponse])
+def get_dataset_quarantine(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+):
+    """Returns quarantined records and defect reason codes for a dataset."""
+    svc = DataGovernanceService(db)
+    return svc.get_quarantine_records(dataset_id)
+
+
+@router.get("/datasets/{dataset_id}/diff", response_model=Optional[DatasetDiffResponse])
+def get_dataset_diff(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves differential record comparison between current and prior version."""
+    svc = DataGovernanceService(db)
+    diff = svc.get_dataset_diff(dataset_id)
+    if not diff:
+        raise HTTPException(status_code=404, detail=f"No diff available for '{dataset_id}'.")
+    return diff
+
+
+@router.get("/datasets/{dataset_id}/impact", response_model=Optional[DatasetImpactResponse])
+def get_dataset_impact(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves downstream dependency and stale decision impact analysis."""
+    svc = DataGovernanceService(db)
+    impact = svc.get_dataset_impact(dataset_id)
+    if not impact:
+        raise HTTPException(status_code=404, detail=f"No impact analysis found for '{dataset_id}'.")
+    return impact
+
+
+@router.get("/demo/seed", response_model=DatasetResponse)
+def seed_demo_datasets(
+    db: Session = Depends(get_db),
+):
+    """Seeds canonical demonstration datasets (V1 and V2) with verified quality and diffs."""
+    try:
+        svc = DataGovernanceService(db)
+        return svc.seed_canonical_demo_data()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Seed failed: {str(e)}")
+

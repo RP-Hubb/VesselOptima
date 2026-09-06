@@ -92,6 +92,12 @@ class AuditMixin:
     created_by = Column(String(255), nullable=True)
 
 
+class TimestampMixin:
+    """Timestamp columns for child/event records without created_by column."""
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+
+
 # ── Runtime Mode Events ──────────────────────────────────────────────
 
 class RuntimeModeEvent(AuditMixin, Base):
@@ -1203,4 +1209,201 @@ class IdleAssessment(AuditMixin, Base):
 
     vessel = relationship("VesselProfile")
     next_commitment = relationship("VesselCommitment")
+
+
+# ── Phase 12: Maritime Data Integration & Quality Governance ───────────
+
+class GovernanceDataset(AuditMixin, Base):
+    """
+    Phase 12: Controlled, versioned maritime dataset container with quality score and provenance.
+    """
+    __tablename__ = "governance_datasets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(String(128), unique=True, index=True, nullable=False)
+    dataset_type = Column(String(64), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    current_version = Column(Integer, default=1, nullable=False)
+    status = Column(String(32), default="IMPORTED", nullable=False, index=True)
+    content_hash = Column(String(128), nullable=False)
+    quality_score = Column(Float, default=0.0, nullable=False)
+    freshness_status = Column(String(32), default="UNKNOWN", nullable=False)
+    record_count = Column(Integer, default=0, nullable=False)
+    created_by = Column(String(255), default="data_engineer", nullable=False)
+    approved_by = Column(String(255), nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+
+    versions = relationship("DatasetVersion", back_populates="dataset", cascade="all, delete-orphan")
+    records = relationship("DatasetRecord", back_populates="dataset", cascade="all, delete-orphan")
+    validations = relationship("DatasetValidation", back_populates="dataset", cascade="all, delete-orphan")
+    quality_reports = relationship("DatasetQuality", back_populates="dataset", cascade="all, delete-orphan")
+    provenance = relationship("DatasetProvenance", back_populates="dataset", uselist=False, cascade="all, delete-orphan")
+    quarantine_records = relationship("QuarantineRecord", back_populates="dataset", cascade="all, delete-orphan")
+    changes = relationship("DatasetChange", back_populates="dataset", cascade="all, delete-orphan")
+    impacts = relationship("DatasetImpact", back_populates="dataset", cascade="all, delete-orphan")
+
+
+class DatasetVersion(AuditMixin, Base):
+    """
+    Phase 12: Immutable version record of a dataset with content hash and storage metadata.
+    """
+    __tablename__ = "dataset_versions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    parent_version_number = Column(Integer, nullable=True)
+    content_hash = Column(String(128), nullable=False)
+    schema_version = Column(String(32), default="1.0.0", nullable=False)
+    record_count = Column(Integer, default=0, nullable=False)
+    change_summary = Column(Text, nullable=True)
+    storage_path = Column(String(512), nullable=True)
+    created_by = Column(String(255), default="data_engineer", nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="versions")
+
+
+class DatasetRecord(TimestampMixin, Base):
+    """
+    Phase 12: Individual normalized record stored with row-level SHA-256 hash.
+    """
+    __tablename__ = "dataset_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    record_index = Column(Integer, nullable=False)
+    business_key = Column(String(255), nullable=True, index=True)
+    record_data = Column(JSON, nullable=False)
+    record_hash = Column(String(128), nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="records")
+
+
+class DatasetValidation(TimestampMixin, Base):
+    """
+    Phase 12: Validation layer outcome (Structural, Type, Physical, Relational).
+    """
+    __tablename__ = "dataset_validations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    layer = Column(String(32), nullable=False)
+    is_valid = Column(Boolean, default=True, nullable=False)
+    error_count = Column(Integer, default=0, nullable=False)
+    warning_count = Column(Integer, default=0, nullable=False)
+    details = Column(JSON, nullable=True)
+    executed_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="validations")
+
+
+class DatasetQuality(TimestampMixin, Base):
+    """
+    Phase 12: Transparent 6-factor data quality score evaluation.
+    """
+    __tablename__ = "dataset_qualities"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    overall_score = Column(Float, nullable=False)
+    completeness_score = Column(Float, nullable=False)
+    validity_score = Column(Float, nullable=False)
+    consistency_score = Column(Float, nullable=False)
+    uniqueness_score = Column(Float, nullable=False)
+    timeliness_score = Column(Float, nullable=False)
+    provenance_score = Column(Float, nullable=False)
+    weights_snapshot = Column(JSON, nullable=True)
+    freshness_status = Column(String(32), nullable=False)
+    evaluated_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="quality_reports")
+
+
+class DatasetProvenance(TimestampMixin, Base):
+    """
+    Phase 12: Full origin, source, actor, and transformation lineage.
+    """
+    __tablename__ = "dataset_provenances"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    source_name = Column(String(255), nullable=False)
+    source_type = Column(String(64), nullable=False)
+    original_filename = Column(String(255), nullable=True)
+    original_hash = Column(String(128), nullable=True)
+    import_actor = Column(String(255), nullable=False)
+    import_timestamp = Column(DateTime, default=utcnow, nullable=False)
+    schema_version = Column(String(32), default="1.0.0", nullable=False)
+    parent_dataset_id = Column(String(128), nullable=True)
+    transformation_chain = Column(JSON, nullable=True)
+
+    dataset = relationship("GovernanceDataset", back_populates="provenance")
+
+
+class QuarantineRecord(TimestampMixin, Base):
+    """
+    Phase 12: Quarantined invalid records with exact field, value, and reason.
+    """
+    __tablename__ = "quarantine_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
+    record_identifier = Column(String(255), nullable=True)
+    field_name = Column(String(128), nullable=True)
+    original_value = Column(Text, nullable=True)
+    error_code = Column(String(64), nullable=False)
+    severity = Column(String(32), default="ROW_QUARANTINE", nullable=False)
+    message = Column(Text, nullable=False)
+    raw_record = Column(JSON, nullable=True)
+    quarantined_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="quarantine_records")
+
+
+class DatasetChange(TimestampMixin, Base):
+    """
+    Phase 12: Record-level diffs between dataset versions (ADDED, REMOVED, MODIFIED, UNCHANGED).
+    """
+    __tablename__ = "dataset_changes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    base_version = Column(Integer, nullable=False)
+    target_version = Column(Integer, nullable=False)
+    change_type = Column(String(32), nullable=False)
+    record_identifier = Column(String(255), nullable=False)
+    field_diffs = Column(JSON, nullable=True)
+    detected_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="changes")
+
+
+class DatasetImpact(TimestampMixin, Base):
+    """
+    Phase 12: Downstream dependency and stale decision analysis across Phases 4–11.
+    """
+    __tablename__ = "dataset_impacts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(Integer, ForeignKey("governance_datasets.id"), nullable=False, index=True)
+    version_number = Column(Integer, nullable=False)
+    impact_level = Column(String(32), default="LOW", nullable=False)
+    affected_engines = Column(JSON, nullable=False)
+    affected_runs = Column(JSON, nullable=True)
+    requires_recalculation = Column(Boolean, default=False, nullable=False)
+    stale_decision_packages = Column(JSON, nullable=True)
+    rationale = Column(Text, nullable=False)
+    analyzed_at = Column(DateTime, default=utcnow, nullable=False)
+
+    dataset = relationship("GovernanceDataset", back_populates="impacts")
+
 
