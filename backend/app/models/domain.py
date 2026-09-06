@@ -641,6 +641,140 @@ class RiskDriver(AuditMixin, Base):
     sensitivity_coefficient = Column(Float, default=0.0)
 
     risk_run = relationship("RiskRun", back_populates="drivers")
+# ── Decision Intelligence & Explainable Recommendations (Phase 10) ───
+
+class DecisionRun(AuditMixin, Base):
+    """
+    Phase 10: Master record of an auditable, deterministic decision evaluation
+    synthesizing Phase 7 MILP, Phase 8 scenarios, and Phase 9 risk intelligence.
+    """
+    __tablename__ = "decision_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(128), unique=True, index=True, nullable=False)
+    optimization_run_id = Column(String(128), index=True, nullable=False)
+    scenario_run_id = Column(String(128), index=True, nullable=True)
+    risk_run_id = Column(String(128), index=True, nullable=True)
+    recommendation_type = Column(String(64), nullable=False)  # PROCEED, PROCEED_WITH_CAUTION, MONITOR, RECONSIDER, REJECT, NO_ACTION
+    confidence = Column(String(32), default="HIGH", nullable=False)  # HIGH, MEDIUM, LOW
+    decision_score = Column(Float, nullable=False)  # 0 to 100
+    decision_stability = Column(Float, default=1.0)  # fraction of scenarios where recommendation holds
+    scoring_breakdown = Column(JSON, nullable=True)
+    risk_adjusted_contribution = Column(Float, nullable=True)
+    threshold_config = Column(JSON, nullable=True)
+    engine_version = Column(String(32), default="1.0.0", nullable=False)
+    rule_version = Column(String(32), default="1.0.0", nullable=False)
+    score_version = Column(String(32), default="1.0.0", nullable=False)
+    input_hash = Column(String(128), nullable=True)
+    output_hash = Column(String(128), nullable=True)
+    audit_trail = Column(JSON, nullable=True)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+    status = Column(String(32), default="COMPLETED", nullable=False)
+    execution_time_seconds = Column(Float, default=0.0)
+
+    recommendations = relationship("DecisionRecommendation", back_populates="decision_run", cascade="all, delete-orphan")
+    evidence = relationship("DecisionEvidence", back_populates="decision_run", uselist=False, cascade="all, delete-orphan")
+    actions = relationship("DecisionAction", back_populates="decision_run", cascade="all, delete-orphan")
+    tradeoffs = relationship("DecisionTradeoff", back_populates="decision_run", cascade="all, delete-orphan")
+
+
+class DecisionRecommendation(AuditMixin, Base):
+    """
+    Phase 10: Plan-level or assignment-level deterministic recommendation
+    with explicit reason codes, metrics, thresholds, and human-readable explanations.
+    """
+    __tablename__ = "decision_recommendations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    decision_run_id = Column(Integer, ForeignKey("decision_runs.id"), nullable=False, index=True)
+    scope = Column(String(32), default="PLAN", nullable=False)  # PLAN, ASSIGNMENT
+    candidate_id = Column(String(128), nullable=True, index=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=True)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True)
+    recommendation_type = Column(String(64), nullable=False)
+    primary_reason_code = Column(String(64), nullable=False)
+    reason_codes = Column(JSON, nullable=True)
+    title = Column(String(255), nullable=False)
+    summary = Column(Text, nullable=False)
+    action_advice = Column(Text, nullable=True)
+    supporting_metrics = Column(JSON, nullable=True)
+    thresholds_used = Column(JSON, nullable=True)
+
+    decision_run = relationship("DecisionRun", back_populates="recommendations")
+    vessel = relationship("VesselProfile")
+    cargo = relationship("CargoParcel")
+
+
+class DecisionEvidence(AuditMixin, Base):
+    """
+    Phase 10: Authoritative stored snapshot of upstream evidence (Phases 7, 8, 9)
+    from which all recommendations and scores are derived.
+    """
+    __tablename__ = "decision_evidence"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    decision_run_id = Column(Integer, ForeignKey("decision_runs.id"), nullable=False, index=True)
+    optimization_objective = Column(Float, nullable=True)
+    expected_contribution = Column(Float, nullable=False)
+    baseline_contribution = Column(Float, nullable=True)
+    risk_adjusted_contribution = Column(Float, nullable=False)
+    loss_probability = Column(Float, nullable=False)
+    cvar_95 = Column(Float, nullable=False)
+    var_95_downside = Column(Float, nullable=False)
+    assignment_survival = Column(Float, nullable=False)
+    plan_reliability = Column(Float, nullable=False)
+    laycan_miss_probability = Column(Float, default=0.0)
+    scenario_survival_rate = Column(Float, default=1.0)
+    robustness_tier = Column(String(64), default="CORE_ROBUST")
+    top_risk_drivers = Column(JSON, nullable=True)
+    critical_warnings = Column(JSON, nullable=True)
+    evidence_payload = Column(JSON, nullable=True)
+
+    decision_run = relationship("DecisionRun", back_populates="evidence")
+
+
+class DecisionAction(AuditMixin, Base):
+    """
+    Phase 10: Prioritized operational actions, monitoring triggers,
+    and contingency guidelines for fleet managers.
+    """
+    __tablename__ = "decision_actions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    decision_run_id = Column(Integer, ForeignKey("decision_runs.id"), nullable=False, index=True)
+    action_id = Column(String(128), nullable=False)
+    priority = Column(String(32), nullable=False)  # CRITICAL, HIGH, MEDIUM, LOW
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    affected_variable = Column(String(128), nullable=True)
+    affected_assignment_id = Column(String(128), nullable=True)
+    trigger_condition = Column(Text, nullable=True)
+    recommended_action = Column(Text, nullable=False)
+    action_status = Column(String(32), default="PENDING")
+
+    decision_run = relationship("DecisionRun", back_populates="actions")
+
+
+class DecisionTradeoff(AuditMixin, Base):
+    """
+    Phase 10: Multi-plan trade-off analysis comparing baseline,
+    scenario alternatives, and risk-adjusted options.
+    """
+    __tablename__ = "decision_tradeoffs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    decision_run_id = Column(Integer, ForeignKey("decision_runs.id"), nullable=False, index=True)
+    comparison_plan_id = Column(String(128), nullable=False)
+    comparison_plan_name = Column(String(255), nullable=False)
+    baseline_plan_name = Column(String(255), nullable=False)
+    contribution_delta = Column(Float, nullable=False)
+    loss_prob_delta = Column(Float, nullable=False)
+    cvar_delta = Column(Float, nullable=False)
+    reliability_delta = Column(Float, nullable=False)
+    tradeoff_summary = Column(Text, nullable=False)
+    tradeoff_details = Column(JSON, nullable=True)
+
+    decision_run = relationship("DecisionRun", back_populates="tradeoffs")
 
 
 

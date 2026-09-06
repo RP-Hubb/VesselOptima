@@ -41,6 +41,11 @@ from app.models.domain import (
     RiskMetric,
     RiskAssignmentMetric,
     RiskDriver,
+    DecisionRun,
+    DecisionRecommendation,
+    DecisionEvidence,
+    DecisionAction,
+    DecisionTradeoff,
 )
 
 __all__ = [
@@ -81,6 +86,11 @@ __all__ = [
     "RiskMetric",
     "RiskAssignmentMetric",
     "RiskDriver",
+    "DecisionRun",
+    "DecisionRecommendation",
+    "DecisionEvidence",
+    "DecisionAction",
+    "DecisionTradeoff",
 ]
 
 

@@ -40,6 +40,8 @@ import type {
   PlanRiskComparisonResponse,
   RiskRunSummary,
   RiskVariableConfig,
+  DecisionResultResponse,
+  DecisionRunSummary,
 } from "@/types/api";
 
 
@@ -399,6 +401,37 @@ export async function getRiskRuns(limit: number = 20): Promise<RiskRunSummary[]>
 
 export async function getRiskRunDetails(runId: string): Promise<Record<string, any>> {
   return request<Record<string, any>>(`/v1/risk/runs/${runId}`);
+}
+
+// ── Phase 10: Decision Intelligence ─────────────────────────────────
+
+export async function getDecisionDemo(scenarioType: string = "BASELINE"): Promise<DecisionResultResponse> {
+  return request<DecisionResultResponse>(`/v1/decision/demo/${scenarioType}`);
+}
+
+export async function evaluateDecision(body: {
+  optimization_run_id: string;
+  scenario_run_id?: string;
+  risk_run_id?: string;
+  strategy_flip_identified?: boolean;
+  thresholds?: Record<string, any>;
+}): Promise<DecisionResultResponse> {
+  return request<DecisionResultResponse>("/v1/decision/evaluate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getDecisionRuns(limit: number = 20): Promise<DecisionRunSummary[]> {
+  return request<DecisionRunSummary[]>(`/v1/decision/runs?limit=${limit}`);
+}
+
+export async function getDecisionRun(runId: string): Promise<DecisionResultResponse> {
+  return request<DecisionResultResponse>(`/v1/decision/runs/${runId}`);
+}
+
+export async function getDecisionThresholds(): Promise<Record<string, any>> {
+  return request<Record<string, any>>("/v1/decision/thresholds");
 }
 
 export { ApiError };

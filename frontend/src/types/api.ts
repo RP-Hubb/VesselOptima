@@ -1005,3 +1005,137 @@ export interface RiskRunSummary {
   plan_reliability_score: number | null;
   risk_tier: RiskTier | null;
 }
+
+// ── Phase 10: Decision Intelligence & Explainable Recommendations ────
+
+export type RecommendationType =
+  | "PROCEED"
+  | "PROCEED_WITH_CAUTION"
+  | "MONITOR"
+  | "RECONSIDER"
+  | "REJECT"
+  | "NO_ACTION";
+
+export type DecisionConfidence = "HIGH" | "MEDIUM" | "LOW";
+
+export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+export interface DecisionScoreBreakdownResponse {
+  economic_component: number;
+  reliability_component: number;
+  robustness_component: number;
+  risk_penalty: number;
+  schedule_penalty: number;
+  composite_score: number;
+}
+
+export interface DecisionEvidenceResponse {
+  optimization_objective: number | null;
+  expected_contribution: number;
+  baseline_contribution: number | null;
+  risk_adjusted_contribution: number;
+  loss_probability: number;
+  cvar_95: number;
+  var_95_downside: number;
+  assignment_survival: number;
+  plan_reliability: number;
+  laycan_miss_probability: number;
+  scenario_survival_rate: number;
+  robustness_tier: string;
+  top_risk_drivers?: Array<{
+    variable_id: string;
+    variable_name: string;
+    category: string;
+    uncertainty_contribution_pct: number;
+  }>;
+  critical_warnings?: string[];
+}
+
+export interface DecisionActionResponse {
+  action_id: string;
+  priority: ActionPriority;
+  title: string;
+  description: string;
+  affected_variable?: string | null;
+  affected_assignment_id?: string | null;
+  trigger_condition?: string | null;
+  recommended_action: string;
+}
+
+export interface DecisionTradeoffResponse {
+  comparison_plan_id: string;
+  comparison_plan_name: string;
+  baseline_plan_name: string;
+  contribution_delta: number;
+  loss_prob_delta: number;
+  cvar_delta: number;
+  reliability_delta: number;
+  tradeoff_summary: string;
+  tradeoff_details?: Record<string, any>;
+}
+
+export interface AssignmentDecisionResponse {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  cargo_id: number | null;
+  cargo_name: string | null;
+  recommendation_type: RecommendationType;
+  primary_reason_code: string;
+  reason_codes: string[];
+  title: string;
+  summary: string;
+  action_advice: string;
+  expected_contribution: number;
+  contribution_std: number;
+  loss_probability: number;
+  cvar95: number;
+  schedule_buffer_days: number;
+  laycan_miss_prob: number;
+  economic_survival_prob: number;
+  schedule_survival_prob: number;
+  risk_tier: string;
+}
+
+export interface DecisionResultResponse {
+  run_id: string;
+  optimization_run_id: string;
+  scenario_run_id: string | null;
+  risk_run_id: string | null;
+  recommendation_type: RecommendationType;
+  primary_reason_code: string;
+  reason_codes: string[];
+  confidence: DecisionConfidence;
+  decision_score: number;
+  scoring_breakdown: DecisionScoreBreakdownResponse;
+  decision_stability: number;
+  risk_adjusted_contribution: number;
+  executive_summary: string;
+  financial_narrative: string;
+  risk_narrative: string;
+  schedule_narrative: string;
+  what_could_change: string[];
+  assignment_recommendations: AssignmentDecisionResponse[];
+  actions: DecisionActionResponse[];
+  tradeoffs: DecisionTradeoffResponse[];
+  evidence: DecisionEvidenceResponse;
+  input_hash: string;
+  output_hash: string;
+  execution_time_seconds: number;
+}
+
+export interface DecisionRunSummary {
+  id: number;
+  run_id: string;
+  optimization_run_id: string;
+  scenario_run_id: string | null;
+  risk_run_id: string | null;
+  recommendation_type: RecommendationType;
+  confidence: DecisionConfidence;
+  decision_score: number;
+  decision_stability: number;
+  risk_adjusted_contribution: number | null;
+  status: string;
+  created_at: string | null;
+}
+

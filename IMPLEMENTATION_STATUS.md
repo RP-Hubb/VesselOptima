@@ -80,10 +80,18 @@
 *   **EXISTING FILES:** `backend/app/models/domain.py` (`RiskRun`, `RiskMetric`, `RiskAssignmentMetric`, `RiskDriver`), `backend/alembic/versions/9d0e1f2a3b4c_add_risk_tables.py`, `backend/app/engines/risk/` (`reason_codes.py`, `models.py`, `distributions.py`, `correlation.py`, `sampling.py`, `metrics.py`, `result.py`, `simulation.py`, `risk_service.py`, `__init__.py`), `backend/app/schemas/risk.py`, `backend/app/api/v1/risk.py`, `backend/tests/test_risk_engine.py`, `frontend/src/app/risk/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_9_SPECIFICATION.md`, `docs/PHASE_9_IMPLEMENTATION.md`.
 *   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Proceed to Phase 10 (API Expansion & Backtest Integration)
+*   **NEXT ACTION:** Complete (Proceed to Phase 10)
 *   **DEPENDENCIES:** MILP Optimizer (Phase 7), Scenario Engine (Phase 8)
 
-## 11. Backtest Engine
+## 11. Decision Intelligence & Explainable Recommendation Engine (Phase 10)
+*   **STATUS:** COMPLETE (Phase 10: Deterministic Gating, Composite Scoring, Risk-Adjusted Economics & Explainability)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`DecisionRun`, `DecisionRecommendation`, `DecisionEvidence`, `DecisionAction`, `DecisionTradeoff`), `backend/alembic/versions/10e1f2a3b4c5_add_decision_tables.py`, `backend/app/engines/decision/` (`reason_codes.py`, `models.py`, `scoring.py`, `confidence.py`, `rules.py`, `explanations.py`, `priorities.py`, `tradeoffs.py`, `result.py`, `service.py`, `__init__.py`), `backend/app/schemas/decision.py`, `backend/app/api/v1/decision.py`, `backend/tests/test_decision_engine.py`, `frontend/src/app/decision/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`, `docs/PHASE_10_SPECIFICATION.md`, `docs/PHASE_10_IMPLEMENTATION.md`.
+*   **MISSING:** None
+*   **BROKEN:** None
+*   **NEXT ACTION:** Proceed to Phase 11 (Frontend Terminal Pages & Data Visualizations)
+*   **DEPENDENCIES:** MILP Optimizer (Phase 7), Scenario Engine (Phase 8), Risk Engine (Phase 9)
+
+## 12. Backtest Engine
 *   **STATUS:** MISSING
 *   **EXISTING FILES:** None
 *   **MISSING:** Chronological simulation, baseline comparators, metrics aggregation.

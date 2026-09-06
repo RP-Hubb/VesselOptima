@@ -23,8 +23,9 @@ const NAV_ITEMS = [
   { label: "Ports", href: "/ports", shortcut: "08" },
   { label: "Backtest", href: "/backtest", shortcut: "09" },
   { label: "Risk", href: "/risk", shortcut: "10" },
-  { label: "Data", href: "/data", shortcut: "11" },
-  { label: "Audit", href: "/audit", shortcut: "12" },
+  { label: "Decision", href: "/decision", shortcut: "11" },
+  { label: "Data", href: "/data", shortcut: "12" },
+  { label: "Audit", href: "/audit", shortcut: "13" },
 ];
 
 export default function SideNav() {
