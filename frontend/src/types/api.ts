@@ -1450,3 +1450,213 @@ export interface DatasetRejectionRequest {
 }
 
 
+// ── Phase 13: Historical Backtesting & Replay Engine Types ─────────
+
+export interface BacktestConfiguration {
+  id: number;
+  config_code: string;
+  name: string;
+  description?: string | null;
+  start_timestamp: string;
+  end_timestamp: string;
+  decision_frequency: "EVENT_DRIVEN" | "DAILY" | "WEEKLY" | "CUSTOM" | string;
+  decision_policy: string;
+  dataset_versions: Record<string, number>;
+  phase8_enabled: boolean;
+  phase9_enabled: boolean;
+  benchmark_set: string[];
+  seed: number;
+  configuration_hash: string;
+  created_at: string;
+  created_by?: string | null;
+}
+
+export interface BacktestRunSummary {
+  id: number;
+  run_code?: string | null;
+  name: string;
+  mode: "DECISION_REPLAY" | "OUTCOME_BACKTEST" | "BENCHMARK_BACKTEST" | string;
+  status: "CREATED" | "VALIDATING" | "READY" | "RUNNING" | "COMPLETED" | "COMPLETED_WITH_WARNINGS" | "FAILED" | "CANCELLED" | string;
+  start_timestamp?: string | null;
+  end_timestamp?: string | null;
+  decision_frequency?: string | null;
+  backtest_hash?: string | null;
+  configuration_hash?: string | null;
+  warnings_count: number;
+  failure_reason?: string | null;
+  execution_time_seconds?: number | null;
+  created_at: string;
+  created_by?: string | null;
+}
+
+export interface PerformanceCurvePoint {
+  date: string;
+  cumulative_vesseloptima_contribution: number;
+  cumulative_benchmark_contribution: number;
+  incremental_contribution: number;
+}
+
+export interface BacktestMetricsSummary {
+  economic: {
+    total_realized_contribution_usd: number;
+    total_expected_contribution_usd: number;
+    average_contribution_per_decision_usd: number;
+    median_contribution_usd: number;
+    contribution_volatility_usd: number;
+    average_daily_contribution_usd: number;
+    economic_forecast_error_usd: number;
+  };
+  relative: {
+    benchmark_total_contribution_usd: number;
+    incremental_contribution_usd: number;
+    relative_improvement_pct: number;
+    benchmark_outperformance: boolean;
+  };
+  decision: {
+    total_decisions: number;
+    accepted_decisions: number;
+    rejected_decisions: number;
+    no_action_decisions: number;
+    recommendation_distribution: Record<string, number>;
+    assignment_stability_pct: number;
+  };
+  risk: {
+    realized_loss_rate_pct: number;
+    expected_loss_usd: number;
+    realized_loss_usd: number;
+    var_95_usd: number;
+    cvar_95_usd: number;
+    risk_calibration_score: number;
+  };
+  operational: {
+    average_idle_days: number;
+    total_ballast_days: number;
+    total_schedule_delay_days: number;
+    laycan_miss_rate_pct: number;
+    cargo_completion_rate_pct: number;
+    vessel_utilization_pct: number;
+  };
+  curve: PerformanceCurvePoint[];
+}
+
+export interface BacktestRunDetail extends BacktestRunSummary {
+  configuration?: BacktestConfiguration | null;
+  metrics_summary?: BacktestMetricsSummary | null;
+  dataset_versions?: Record<string, number> | null;
+  software_version?: string | null;
+  solver_version?: string | null;
+}
+
+export interface BacktestTimelineStep {
+  id: number;
+  step_index: number;
+  step_timestamp: string;
+  event_count: number;
+  status: string;
+  notes?: string | null;
+}
+
+export interface BacktestDecisionItem {
+  id: number;
+  decision_code: string;
+  decision_timestamp: string;
+  recommendation: string;
+  assignments: Array<{
+    candidate_id: string;
+    vessel_id: number;
+    cargo_id: number | null;
+    status: string;
+    expected_contribution_usd: number;
+    expected_revenue_usd: number;
+    expected_cost_usd: number;
+    trade_off_reason_code?: string;
+  }>;
+  expected_contribution: number;
+  decision_hash: string;
+  phase7_run_id?: string | null;
+  phase8_run_id?: string | null;
+  phase9_run_id?: string | null;
+  phase10_run_id?: string | null;
+  risk_metrics?: Record<string, unknown> | null;
+  governance_state?: Record<string, unknown> | null;
+}
+
+export interface BacktestOutcomeItem {
+  id: number;
+  outcome_code: string;
+  vessel_id: number;
+  cargo_id: number | null;
+  realized_revenue: number;
+  realized_bunker_cost: number;
+  realized_port_cost: number;
+  realized_voyage_cost: number;
+  realized_ballast_cost: number;
+  realized_idle_cost: number;
+  realized_contribution: number;
+  expected_contribution: number;
+  economic_error: number;
+  schedule_delay_days: number;
+  idle_days: number;
+  ballast_days: number;
+  cargo_completed: boolean;
+  outcome_hash: string;
+}
+
+export interface BacktestBenchmarkResultItem {
+  id: number;
+  benchmark_code?: string | null;
+  benchmark_name?: string | null;
+  strategy_type?: string | null;
+  step_timestamp: string;
+  assignments: Array<Record<string, unknown>>;
+  realized_contribution: number;
+  vessel_utilization: number;
+  details?: Record<string, unknown> | null;
+}
+
+export interface BacktestAttributionItem {
+  id: number;
+  attribution_type: "VESSEL" | "CARGO" | "DECISION_TYPE" | "ASSOCIATED_DRIVER" | string;
+  entity_id: string;
+  entity_name: string;
+  incremental_contribution: number;
+  decision_count: number;
+  utilization_pct: number;
+  details?: Record<string, unknown> | null;
+}
+
+export interface BacktestLeakageItem {
+  id: number;
+  leakage_type: string;
+  severity: "CRITICAL" | "WARNING" | string;
+  field_name?: string | null;
+  decision_timestamp: string;
+  information_timestamp?: string | null;
+  details?: Record<string, unknown> | null;
+  detected_at: string;
+}
+
+export interface BacktestCompareRunItem {
+  run_id: number;
+  run_code: string;
+  name: string;
+  mode: string;
+  status: string;
+  total_realized_contribution: number;
+  incremental_contribution: number;
+  relative_improvement_pct: number;
+  vessel_utilization_pct: number;
+  schedule_delay_days: number;
+  warnings_count: number;
+  backtest_hash: string;
+}
+
+export interface BacktestCompareResponse {
+  runs: BacktestCompareRunItem[];
+  winner_run_id: number;
+  delta_contribution_usd: number;
+  comparison_notes: string[];
+}
+
+
+

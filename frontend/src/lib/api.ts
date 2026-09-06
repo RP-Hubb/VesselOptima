@@ -59,6 +59,17 @@ import type {
   DatasetVersionImportRequest,
   DatasetApprovalRequest,
   DatasetRejectionRequest,
+  BacktestConfiguration,
+  BacktestRunSummary,
+  BacktestRunDetail,
+  BacktestTimelineStep,
+  BacktestDecisionItem,
+  BacktestOutcomeItem,
+  BacktestBenchmarkResultItem,
+  BacktestAttributionItem,
+  BacktestLeakageItem,
+  BacktestCompareResponse,
+  BacktestMetricsSummary,
 } from "@/types/api";
 
 
@@ -667,6 +678,100 @@ export async function seedDataDemo(scenario: string = "CANONICAL"): Promise<Data
   return request<DatasetResponse>(`/v1/data/demo/seed?scenario=${scenario}`);
 }
 
+// ── Phase 13: Historical Backtesting & Replay Engine ─────────────────
+
+export async function getBacktestConfigurations(limit: number = 20): Promise<BacktestConfiguration[]> {
+  return request<BacktestConfiguration[]>(`/v1/backtest/configurations?limit=${limit}`);
+}
+
+export async function createBacktestConfiguration(body: {
+  name: string;
+  description?: string;
+  start_timestamp: string;
+  end_timestamp: string;
+  decision_frequency?: string;
+  decision_policy?: string;
+  dataset_versions?: Record<string, number>;
+  phase8_enabled?: boolean;
+  phase9_enabled?: boolean;
+  benchmark_set?: string[];
+  seed?: number;
+  created_by?: string;
+}): Promise<BacktestConfiguration> {
+  return request<BacktestConfiguration>("/v1/backtest/configurations", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getBacktestRuns(limit: number = 50): Promise<BacktestRunSummary[]> {
+  return request<BacktestRunSummary[]>(`/v1/backtest/runs?limit=${limit}`);
+}
+
+export async function getBacktestRunDetail(runId: number | string): Promise<BacktestRunDetail> {
+  return request<BacktestRunDetail>(`/v1/backtest/runs/${runId}`);
+}
+
+export async function createBacktestRun(body: {
+  configuration_id?: number;
+  name: string;
+  mode?: string;
+  start_timestamp?: string;
+  end_timestamp?: string;
+  decision_frequency?: string;
+  benchmark_set?: string[];
+  created_by?: string;
+}): Promise<BacktestRunDetail> {
+  return request<BacktestRunDetail>("/v1/backtest/runs", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getBacktestTimeline(runId: number | string): Promise<BacktestTimelineStep[]> {
+  return request<BacktestTimelineStep[]>(`/v1/backtest/runs/${runId}/timeline`);
+}
+
+export async function getBacktestDecisions(runId: number | string): Promise<BacktestDecisionItem[]> {
+  return request<BacktestDecisionItem[]>(`/v1/backtest/runs/${runId}/decisions`);
+}
+
+export async function getBacktestOutcomes(runId: number | string): Promise<BacktestOutcomeItem[]> {
+  return request<BacktestOutcomeItem[]>(`/v1/backtest/runs/${runId}/outcomes`);
+}
+
+export async function getBacktestBenchmarks(runId: number | string): Promise<BacktestBenchmarkResultItem[]> {
+  return request<BacktestBenchmarkResultItem[]>(`/v1/backtest/runs/${runId}/benchmarks`);
+}
+
+export async function getBacktestMetrics(runId: number | string): Promise<BacktestMetricsSummary> {
+  return request<BacktestMetricsSummary>(`/v1/backtest/runs/${runId}/metrics`);
+}
+
+export async function getBacktestAttribution(
+  runId: number | string,
+  attributionType?: string
+): Promise<BacktestAttributionItem[]> {
+  const qs = attributionType ? `?attribution_type=${attributionType}` : "";
+  return request<BacktestAttributionItem[]>(`/v1/backtest/runs/${runId}/attribution${qs}`);
+}
+
+export async function getBacktestLeakage(runId: number | string): Promise<BacktestLeakageItem[]> {
+  return request<BacktestLeakageItem[]>(`/v1/backtest/runs/${runId}/leakage`);
+}
+
+export async function compareBacktestRuns(runIds: number[]): Promise<BacktestCompareResponse> {
+  const qs = runIds.map((id) => `run_ids=${id}`).join("&");
+  return request<BacktestCompareResponse>(`/v1/backtest/compare?${qs}`);
+}
+
+export async function runBacktestDemoPreset(presetName: string = "Q1_2026_HISTORICAL_REPLAY"): Promise<BacktestRunDetail> {
+  return request<BacktestRunDetail>(`/v1/backtest/demo/run?preset_name=${presetName}`, {
+    method: "POST",
+  });
+}
+
 export { ApiError };
+
 
 

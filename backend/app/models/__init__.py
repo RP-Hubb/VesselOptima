@@ -62,6 +62,16 @@ from app.models.domain import (
     QuarantineRecord,
     DatasetChange,
     DatasetImpact,
+    BacktestConfiguration,
+    BacktestSnapshot,
+    BacktestDecision,
+    BacktestOutcome,
+    BacktestBenchmark,
+    BacktestBenchmarkResult,
+    BacktestMetric,
+    BacktestAttribution,
+    BacktestLeakage,
+    BacktestTimeline,
 )
 
 __all__ = [
@@ -123,6 +133,16 @@ __all__ = [
     "QuarantineRecord",
     "DatasetChange",
     "DatasetImpact",
+    "BacktestConfiguration",
+    "BacktestSnapshot",
+    "BacktestDecision",
+    "BacktestOutcome",
+    "BacktestBenchmark",
+    "BacktestBenchmarkResult",
+    "BacktestMetric",
+    "BacktestAttribution",
+    "BacktestLeakage",
+    "BacktestTimeline",
 ]
 
 

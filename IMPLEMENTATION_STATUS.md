@@ -104,6 +104,16 @@
 *   **EXISTING FILES:** `backend/app/models/domain.py` (`GovernanceDataset`, `DatasetVersion`, `DatasetRecord`, `DatasetValidation`, `DatasetQuality`, `DatasetProvenance`, `QuarantineRecord`, `DatasetChange`, `DatasetImpact`), `backend/alembic/versions/12a3b4c5d6e7_add_data_governance_tables.py`, `backend/app/engines/data/` (`reason_codes.py`, `contracts.py`, `models.py`, `normalization.py`, `validation.py`, `quarantine.py`, `quality.py`, `hashing.py`, `versioning.py`, `impact.py`, `service.py`, `adapters/base.py`, `adapters/local_file.py`, `__init__.py`), `backend/app/schemas/data.py`, `backend/app/api/v1/data.py`, `backend/tests/test_data_governance.py` (25/25 PASS), `frontend/src/app/data/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_12_SPECIFICATION.md`, `docs/PHASE_12_IMPLEMENTATION.md`.
 *   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Complete. Full regression 232/232 PASS. Ready for Phase 13 (Historical Backtesting Engine).
+*   **NEXT ACTION:** Complete. Proceed to Phase 13 (Historical Backtesting Engine).
 *   **DEPENDENCIES:** Data Integration & Quality Governance (Phase 12), Decision Governance (Phase 11), Decision Engine (Phase 10), Risk Engine (Phase 9), Scenario Engine (Phase 8), MILP Optimizer (Phase 7)
+
+## 14. Historical Backtesting & Decision Replay Engine (Phase 13)
+*   **STATUS:** COMPLETE (Phase 13: Point-in-Time Reconstruction, Look-Ahead Bias Prevention, HiGHS MILP Replay, 5-Benchmark Comparative Testing, Realized Outcome Audit & Multidimensional Attribution)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`BacktestConfiguration`, `BacktestRun`, `BacktestSnapshot`, `BacktestDecision`, `BacktestOutcome`, `BacktestBenchmark`, `BacktestBenchmarkResult`, `BacktestMetric`, `BacktestAttribution`, `BacktestLeakage`, `BacktestTimeline`), `backend/alembic/versions/13b4c5d6e7f8_add_backtesting_tables.py`, `backend/app/engines/backtest/` (`reason_codes.py`, `events.py`, `snapshot.py`, `leakage.py`, `timeline.py`, `benchmarks.py`, `outcome.py`, `metrics.py`, `attribution.py`, `orchestrator.py`, `service.py`, `__init__.py`), `backend/app/schemas/backtest.py`, `backend/app/api/v1/backtest.py`, `backend/tests/test_backtesting.py` (44/44 PASS), `frontend/src/app/backtest/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_13_SPECIFICATION.md`, `docs/PHASE_13_IMPLEMENTATION.md`, `docs/PHASE_13_BACKTEST_METHODOLOGY.md`, `docs/PHASE_13_STATUS.md`.
+*   **MISSING:** None
+*   **BROKEN:** None
+*   **TESTS:** Phase 13: 44/44 PASS | Full Platform Regression: 276/276 PASS (100% green)
+*   **NEXT ACTION:** Complete. Platform baseline fully verified and ready for Phase 14 (Fleet Carbon & CII / FuelEU Compliance Engine).
+*   **DEPENDENCIES:** Phase 12 (Data Governance), Phase 11 (Decision Governance), Phase 10 (Decision Intelligence), Phase 9 (Risk), Phase 8 (Scenarios), Phase 7 (HiGHS MILP Optimizer).
+
 

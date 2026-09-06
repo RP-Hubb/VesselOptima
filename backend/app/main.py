@@ -21,7 +21,7 @@ from app.core.exceptions import (
 )
 from app.db.base import Base
 from app.db.session import engine
-from app.api.v1 import data, decision, employment, feasibility, forecast, governance, health, optimization, procurement, risk, runtime, scenarios
+from app.api.v1 import backtest, data, decision, employment, feasibility, forecast, governance, health, optimization, procurement, risk, runtime, scenarios
 
 
 
@@ -113,6 +113,7 @@ app.include_router(scenarios.router, prefix="/v1")
 app.include_router(risk.router, prefix="/v1")
 app.include_router(decision.router, prefix="/v1")
 app.include_router(governance.router, prefix="/v1")
+app.include_router(backtest.router, prefix="/v1")
 
 
 

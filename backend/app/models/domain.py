@@ -1042,10 +1042,38 @@ class IdleActionEvaluation(AuditMixin, Base):
     evaluation = relationship("IdleEmploymentEvaluation")
 
 
-# ── Backtest Runs ────────────────────────────────────────────────────
+# ── Phase 13: Backtesting & Decision Replay Models ───────────────────
+
+class BacktestConfiguration(AuditMixin, Base):
+    """
+    Phase 13: Immutable historical backtest configuration specification.
+    """
+    __tablename__ = "backtest_configurations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    config_code = Column(String(64), unique=True, index=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    start_timestamp = Column(DateTime, nullable=False)
+    end_timestamp = Column(DateTime, nullable=False)
+    decision_frequency = Column(String(32), default="EVENT_DRIVEN", nullable=False)
+    decision_policy = Column(String(64), default="RECOMMENDED", nullable=False)
+    dataset_versions = Column(JSON, nullable=False)
+    phase7_configuration = Column(JSON, nullable=True)
+    phase8_enabled = Column(Boolean, default=False, nullable=False)
+    phase9_enabled = Column(Boolean, default=False, nullable=False)
+    phase10_configuration = Column(JSON, nullable=True)
+    benchmark_set = Column(JSON, nullable=False)
+    seed = Column(Integer, default=42, nullable=False)
+    configuration_hash = Column(String(128), nullable=False)
+
+    runs = relationship("BacktestRun", back_populates="configuration")
+
 
 class BacktestRun(AuditMixin, Base):
-    """Historical point-in-time decision simulation record."""
+    """
+    Phase 13 & Historical point-in-time decision simulation record.
+    """
     __tablename__ = "backtest_runs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -1057,6 +1085,37 @@ class BacktestRun(AuditMixin, Base):
     runtime_mode = Column(Enum(RuntimeModeEnum), nullable=False)
     data_context_id = Column(String(64), nullable=True)
     result_summary = Column(JSON, nullable=True)
+
+    # Phase 13 Extensions
+    run_code = Column(String(64), unique=True, index=True, nullable=True)
+    configuration_id = Column(Integer, ForeignKey("backtest_configurations.id"), nullable=True, index=True)
+    mode = Column(String(32), default="DECISION_REPLAY", nullable=False)
+    start_timestamp = Column(DateTime, nullable=True)
+    end_timestamp = Column(DateTime, nullable=True)
+    decision_frequency = Column(String(32), default="EVENT_DRIVEN", nullable=False)
+    dataset_versions = Column(JSON, nullable=True)
+    backtest_hash = Column(String(128), nullable=True)
+    dataset_hash = Column(String(128), nullable=True)
+    configuration_hash = Column(String(128), nullable=True)
+    seed = Column(Integer, default=42, nullable=False)
+    software_version = Column(String(32), default="1.0.0", nullable=False)
+    phase_versions = Column(JSON, nullable=True)
+    solver_version = Column(String(64), default="HiGHS-1.5.1", nullable=False)
+    warnings_count = Column(Integer, default=0, nullable=False)
+    failure_reason = Column(String(255), nullable=True)
+    metrics_summary = Column(JSON, nullable=True)
+    execution_time_seconds = Column(Float, nullable=True)
+
+    configuration = relationship("BacktestConfiguration", back_populates="runs")
+    snapshots = relationship("BacktestSnapshot", back_populates="run", cascade="all, delete-orphan")
+    decisions = relationship("BacktestDecision", back_populates="run", cascade="all, delete-orphan")
+    outcomes = relationship("BacktestOutcome", back_populates="run", cascade="all, delete-orphan")
+    benchmark_results = relationship("BacktestBenchmarkResult", back_populates="run", cascade="all, delete-orphan")
+    metrics = relationship("BacktestMetric", back_populates="run", cascade="all, delete-orphan")
+    attributions = relationship("BacktestAttribution", back_populates="run", cascade="all, delete-orphan")
+    leakage_records = relationship("BacktestLeakage", back_populates="run", cascade="all, delete-orphan")
+    timeline_steps = relationship("BacktestTimeline", back_populates="run", cascade="all, delete-orphan")
+
 
 
 # ── Feasibility Checks ───────────────────────────────────────────────
@@ -1405,5 +1464,199 @@ class DatasetImpact(TimestampMixin, Base):
     analyzed_at = Column(DateTime, default=utcnow, nullable=False)
 
     dataset = relationship("GovernanceDataset", back_populates="impacts")
+
+
+# ── Phase 13: Historical Backtesting Child Models ─────────────────────
+
+class BacktestSnapshot(TimestampMixin, Base):
+    """
+    Phase 13: Point-in-time reconstructed state snapshot for a backtest timestamp.
+    """
+    __tablename__ = "backtest_snapshots"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    snapshot_code = Column(String(64), unique=True, index=True, nullable=False)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    snapshot_timestamp = Column(DateTime, nullable=False, index=True)
+    dataset_versions = Column(JSON, nullable=False)
+    vessel_count = Column(Integer, default=0, nullable=False)
+    cargo_count = Column(Integer, default=0, nullable=False)
+    market_state_hash = Column(String(128), nullable=True)
+    snapshot_hash = Column(String(128), nullable=False)
+    snapshot_payload = Column(JSON, nullable=True)
+
+    run = relationship("BacktestRun", back_populates="snapshots")
+    decisions = relationship("BacktestDecision", back_populates="snapshot")
+
+
+class BacktestDecision(TimestampMixin, Base):
+    """
+    Phase 13: Immutable decision record frozen at historical timestamp.
+    """
+    __tablename__ = "backtest_decisions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    decision_code = Column(String(64), unique=True, index=True, nullable=False)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    snapshot_id = Column(Integer, ForeignKey("backtest_snapshots.id"), nullable=False, index=True)
+    decision_timestamp = Column(DateTime, nullable=False, index=True)
+    phase7_run_id = Column(String(64), nullable=True)
+    phase8_run_id = Column(String(64), nullable=True)
+    phase9_run_id = Column(String(64), nullable=True)
+    phase10_run_id = Column(String(64), nullable=True)
+    recommendation = Column(String(32), nullable=False)
+    assignments = Column(JSON, nullable=False)
+    expected_contribution = Column(Float, default=0.0, nullable=False)
+    risk_metrics = Column(JSON, nullable=True)
+    governance_state = Column(JSON, nullable=True)
+    decision_hash = Column(String(128), nullable=False)
+
+    run = relationship("BacktestRun", back_populates="decisions")
+    snapshot = relationship("BacktestSnapshot", back_populates="decisions")
+    outcomes = relationship("BacktestOutcome", back_populates="decision")
+
+
+class BacktestOutcome(TimestampMixin, Base):
+    """
+    Phase 13: Realized operational and economic outcome of a historical decision.
+    """
+    __tablename__ = "backtest_outcomes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    outcome_code = Column(String(64), unique=True, index=True, nullable=False)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    decision_id = Column(Integer, ForeignKey("backtest_decisions.id"), nullable=True, index=True)
+    vessel_id = Column(Integer, nullable=False)
+    cargo_id = Column(Integer, nullable=True)
+    realized_revenue = Column(Float, default=0.0, nullable=False)
+    realized_bunker_cost = Column(Float, default=0.0, nullable=False)
+    realized_port_cost = Column(Float, default=0.0, nullable=False)
+    realized_voyage_cost = Column(Float, default=0.0, nullable=False)
+    realized_ballast_cost = Column(Float, default=0.0, nullable=False)
+    realized_idle_cost = Column(Float, default=0.0, nullable=False)
+    realized_contribution = Column(Float, default=0.0, nullable=False)
+    expected_contribution = Column(Float, default=0.0, nullable=False)
+    economic_error = Column(Float, default=0.0, nullable=False)
+    planned_departure = Column(DateTime, nullable=True)
+    actual_departure = Column(DateTime, nullable=True)
+    planned_arrival = Column(DateTime, nullable=True)
+    actual_arrival = Column(DateTime, nullable=True)
+    schedule_delay_days = Column(Float, default=0.0, nullable=False)
+    idle_days = Column(Float, default=0.0, nullable=False)
+    ballast_days = Column(Float, default=0.0, nullable=False)
+    cargo_completed = Column(Boolean, default=True, nullable=False)
+    outcome_hash = Column(String(128), nullable=False)
+
+    run = relationship("BacktestRun", back_populates="outcomes")
+    decision = relationship("BacktestDecision", back_populates="outcomes")
+
+
+class BacktestBenchmark(TimestampMixin, Base):
+    """
+    Phase 13: Reusable baseline benchmark strategy definition.
+    """
+    __tablename__ = "backtest_benchmarks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    benchmark_code = Column(String(64), unique=True, index=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    strategy_type = Column(String(64), nullable=False)
+    description = Column(Text, nullable=True)
+    parameters = Column(JSON, nullable=True)
+
+    results = relationship("BacktestBenchmarkResult", back_populates="benchmark")
+
+
+class BacktestBenchmarkResult(TimestampMixin, Base):
+    """
+    Phase 13: Benchmark strategy allocation and realization outcome per decision point.
+    """
+    __tablename__ = "backtest_benchmark_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    benchmark_id = Column(Integer, ForeignKey("backtest_benchmarks.id"), nullable=False, index=True)
+    decision_id = Column(Integer, ForeignKey("backtest_decisions.id"), nullable=True, index=True)
+    step_timestamp = Column(DateTime, nullable=False, index=True)
+    assignments = Column(JSON, nullable=False)
+    realized_contribution = Column(Float, default=0.0, nullable=False)
+    vessel_utilization = Column(Float, default=0.0, nullable=False)
+    details = Column(JSON, nullable=True)
+
+    run = relationship("BacktestRun", back_populates="benchmark_results")
+    benchmark = relationship("BacktestBenchmark", back_populates="results")
+
+
+class BacktestMetric(TimestampMixin, Base):
+    """
+    Phase 13: Portfolio and fleet-level aggregate performance, economic, and risk metrics.
+    """
+    __tablename__ = "backtest_metrics"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    metric_category = Column(String(32), nullable=False)
+    metric_name = Column(String(64), nullable=False)
+    metric_value = Column(Float, nullable=False)
+    details = Column(JSON, nullable=True)
+
+    run = relationship("BacktestRun", back_populates="metrics")
+
+
+class BacktestAttribution(TimestampMixin, Base):
+    """
+    Phase 13: Contribution and value attribution across vessels, cargoes, and drivers.
+    """
+    __tablename__ = "backtest_attributions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    attribution_type = Column(String(32), nullable=False)
+    entity_id = Column(String(64), nullable=False)
+    entity_name = Column(String(255), nullable=False)
+    incremental_contribution = Column(Float, default=0.0, nullable=False)
+    decision_count = Column(Integer, default=0, nullable=False)
+    utilization_pct = Column(Float, default=0.0, nullable=False)
+    details = Column(JSON, nullable=True)
+
+    run = relationship("BacktestRun", back_populates="attributions")
+
+
+class BacktestLeakage(TimestampMixin, Base):
+    """
+    Phase 13: Audit log of information leakage checks and look-ahead violations.
+    """
+    __tablename__ = "backtest_leakages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    decision_id = Column(Integer, ForeignKey("backtest_decisions.id"), nullable=True, index=True)
+    leakage_type = Column(String(64), nullable=False)
+    severity = Column(String(32), default="CRITICAL", nullable=False)
+    field_name = Column(String(128), nullable=True)
+    decision_timestamp = Column(DateTime, nullable=False)
+    information_timestamp = Column(DateTime, nullable=True)
+    details = Column(JSON, nullable=True)
+    detected_at = Column(DateTime, default=utcnow, nullable=False)
+
+    run = relationship("BacktestRun", back_populates="leakage_records")
+
+
+class BacktestTimeline(TimestampMixin, Base):
+    """
+    Phase 13: Chronological timeline of decision schedule nodes for backtest execution.
+    """
+    __tablename__ = "backtest_timelines"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(Integer, ForeignKey("backtest_runs.id"), nullable=False, index=True)
+    step_index = Column(Integer, nullable=False)
+    step_timestamp = Column(DateTime, nullable=False, index=True)
+    event_count = Column(Integer, default=0, nullable=False)
+    status = Column(String(32), default="PENDING", nullable=False)
+    notes = Column(Text, nullable=True)
+
+    run = relationship("BacktestRun", back_populates="timeline_steps")
+
 
 
