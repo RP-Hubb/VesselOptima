@@ -31,7 +31,13 @@ import type {
   OptimizationResultResponse,
   OptimizationRunSummary,
   CompareRunsResponse,
+  ScenarioConfigPayload,
+  ScenarioPresetItem,
+  ScenarioComparisonResponse,
+  SensitivitySweepResponse,
+  RobustnessResponse,
 } from "@/types/api";
+
 
 function getApiBase(): string {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -299,5 +305,53 @@ export async function compareOptimizationRuns(body: {
   });
 }
 
+// ── Phase 8: Scenarios & Sensitivity API ─────────────────────────────
+
+export async function getScenarioPresets(): Promise<ScenarioPresetItem[]> {
+  return request<ScenarioPresetItem[]>("/v1/scenarios/presets");
+}
+
+export async function runScenario(
+  body: ScenarioConfigPayload,
+  persist: boolean = true
+): Promise<ScenarioComparisonResponse> {
+  return request<ScenarioComparisonResponse>(`/v1/scenarios/run?persist=${persist}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function runBatchScenarios(
+  body: { scenarios: ScenarioConfigPayload[] },
+  persist: boolean = true
+): Promise<{ total_scenarios_executed: number; comparisons: ScenarioComparisonResponse[] }> {
+  return request<{ total_scenarios_executed: number; comparisons: ScenarioComparisonResponse[] }>(
+    `/v1/scenarios/batch?persist=${persist}`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function runSensitivitySweep(
+  body: {
+    parameter_name: string;
+    sweep_values: number[];
+    base_config?: ScenarioConfigPayload;
+  },
+  persist: boolean = true
+): Promise<SensitivitySweepResponse> {
+  return request<SensitivitySweepResponse>(`/v1/scenarios/sensitivity?persist=${persist}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getEnsembleRobustness(): Promise<RobustnessResponse> {
+  return request<RobustnessResponse>("/v1/scenarios/robustness");
+}
+
 export { ApiError };
+
 

@@ -441,6 +441,49 @@ class Scenario(AuditMixin, Base):
     is_demo = Column(Boolean, default=False)
 
 
+class ScenarioEvaluation(AuditMixin, Base):
+    """
+    Phase 8: Evaluates and compares a scenario run against a baseline optimization run.
+    Stores objective deltas, cargo coverage, vessel utilization, and assignment differences.
+    """
+    __tablename__ = "scenario_evaluations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scenario_code = Column(String(128), index=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    scenario_type = Column(String(64), default="WHAT_IF", nullable=False)
+    baseline_run_id = Column(String(128), index=True, nullable=False)
+    scenario_run_id = Column(String(128), index=True, nullable=False)
+    parameters = Column(JSON, nullable=True)
+    config_hash = Column(String(128), nullable=True)
+    comparison_metrics = Column(JSON, nullable=True)
+    assignment_deltas = Column(JSON, nullable=True)
+    cargo_deltas = Column(JSON, nullable=True)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+    audit_trail = Column(JSON, nullable=True)
+
+
+class ScenarioSensitivityRun(AuditMixin, Base):
+    """
+    Phase 8: Stores one-variable-at-a-time parameter sweeps, break-even switching
+    thresholds, and assignment robustness scores across scenario ensembles.
+    """
+    __tablename__ = "scenario_sensitivity_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sweep_id = Column(String(128), unique=True, index=True, nullable=False)
+    parameter_name = Column(String(64), nullable=False)
+    baseline_run_id = Column(String(128), index=True, nullable=False)
+    parameter_range = Column(JSON, nullable=True)
+    sweep_points = Column(JSON, nullable=False)
+    break_even_points = Column(JSON, nullable=True)
+    robustness_scores = Column(JSON, nullable=True)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+    audit_trail = Column(JSON, nullable=True)
+
+
+
 # ── Optimization Runs ────────────────────────────────────────────────
 
 class OptimizationRun(AuditMixin, Base):

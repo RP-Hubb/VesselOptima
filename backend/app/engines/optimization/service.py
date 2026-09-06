@@ -86,7 +86,8 @@ class OptimizationService:
         # 1. Obtain candidates
         upstream_rejected: list[dict[str, Any]] = []
         if custom_candidates is not None:
-            candidates = custom_candidates
+            candidates = [c for c in custom_candidates if c.get("status") == "FEASIBLE"]
+            upstream_rejected = [c for c in custom_candidates if c.get("status") != "FEASIBLE"]
         elif scenario and scenario in ("DEMO_FLEET", "GREEDY_PROOF", "HIGH_BALLAST", "IDLE_FOCUS", "REJECTION"):
             candidates = self._get_scenario_candidates(scenario, eval_date)
         else:

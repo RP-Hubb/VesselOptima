@@ -67,13 +67,14 @@
 *   **NEXT ACTION:** Proceed to Phase 8 (Risk & Scenario Engine)
 *   **DEPENDENCIES:** Feasibility Engine, Procurement Engine, Idle Engine
 
-## 9. Risk + Scenarios
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Risk scoring, scenario stress testing (e.g. `FUEL_+20`, `FREIGHT_+15`).
+## 9. Risk + Scenarios (Phase 8)
+*   **STATUS:** COMPLETE (Phase 8: Scenario Analysis, Sensitivity & What-If Optimization Engine)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`ScenarioEvaluation`, `ScenarioSensitivityRun`), `backend/alembic/versions/8c9d0e1f2a3b_add_scenario_tables.py`, `backend/app/engines/scenarios/` (`config.py`, `transform.py`, `revalidation.py`, `comparison.py`, `sensitivity.py`, `robustness.py`, `service.py`, `__init__.py`), `backend/app/schemas/scenario.py`, `backend/app/api/v1/scenarios.py`, `backend/tests/test_scenario_engine.py`, `frontend/src/app/scenarios/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_8_SPECIFICATION.md`, `docs/PHASE_8_IMPLEMENTATION.md`.
+*   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Implement risk and scenario evaluators.
-*   **DEPENDENCIES:** MILP Optimizer
+*   **NEXT ACTION:** Proceed to Phase 9 (Backtesting Engine)
+*   **DEPENDENCIES:** MILP Optimizer (Phase 7)
+
 
 ## 10. Backtest Engine
 *   **STATUS:** MISSING

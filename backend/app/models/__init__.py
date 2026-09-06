@@ -35,6 +35,8 @@ from app.models.domain import (
     EmploymentOpportunity,
     IdleAssessment,
     OptimizationAssignment,
+    ScenarioEvaluation,
+    ScenarioSensitivityRun,
 )
 
 __all__ = [
@@ -56,6 +58,8 @@ __all__ = [
     "ForecastRun",
     "Forecast",
     "Scenario",
+    "ScenarioEvaluation",
+    "ScenarioSensitivityRun",
     "OptimizationRun",
     "OptimizationAssignment",
     "Recommendation",
@@ -69,3 +73,4 @@ __all__ = [
     "EmploymentOpportunity",
     "IdleAssessment",
 ]
+

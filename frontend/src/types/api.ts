@@ -692,4 +692,194 @@ export interface CompareRunsResponse {
   };
 }
 
+// ── Phase 8: Scenarios & Sensitivity ────────────────────────────────
+
+export interface ScenarioConfigPayload {
+  scenario_id?: string;
+  name: string;
+  description?: string;
+  scenario_type?: string;
+  baseline_scenario?: string;
+  freight_multiplier: number;
+  bunker_multiplier: number;
+  idle_cost_multiplier: number;
+  port_cost_multiplier: number;
+  laycan_adjustment_days: number;
+  excluded_vessel_ids: number[];
+  vessel_delay_days: Record<string, number>;
+  alpha_idle_weight?: number;
+  beta_ballast_penalty?: number;
+  default_unserved_penalty?: number;
+}
+
+export interface ScenarioPresetItem {
+  scenario_id: string;
+  name: string;
+  description: string;
+  scenario_type: string;
+  freight_multiplier: number;
+  bunker_multiplier: number;
+  idle_cost_multiplier: number;
+  port_cost_multiplier: number;
+  laycan_adjustment_days: number;
+  excluded_vessel_ids: number[];
+  vessel_delay_days: Record<string, number>;
+}
+
+export interface CandidateDeltaItem {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  cargo_id: number | null;
+  cargo_name: string;
+  delta_status: "UNCHANGED" | "ADDED" | "DROPPED" | "REJECTED";
+  in_baseline: boolean;
+  in_scenario: boolean;
+  baseline_revenue: number;
+  scenario_revenue: number;
+  baseline_cost: number;
+  scenario_cost: number;
+  baseline_net_contribution: number;
+  scenario_net_contribution: number;
+  contribution_delta: number;
+  trade_off_explanation: string;
+}
+
+export interface CargoDeltaItem {
+  cargo_id: number;
+  cargo_name: string;
+  delta_status: "UNCHANGED" | "REPLACED" | "DROPPED_TO_UNSERVED" | "NEWLY_SERVED";
+  baseline_vessel_id: number | null;
+  baseline_vessel_name: string | null;
+  scenario_vessel_id: number | null;
+  scenario_vessel_name: string | null;
+  explanation: string;
+}
+
+export interface VesselDeltaItem {
+  vessel_id: number;
+  vessel_name: string;
+  baseline_cargo_id: number | null;
+  baseline_cargo_name: string | null;
+  scenario_cargo_id: number | null;
+  scenario_cargo_name: string | null;
+  is_assignment_changed: boolean;
+  explanation: string;
+}
+
+export interface ScenarioComparisonResponse {
+  scenario_id: string;
+  scenario_name: string;
+  baseline_run_id: string;
+  scenario_run_id: string;
+
+  objective_value_baseline: number;
+  objective_value_scenario: number;
+  objective_value_delta: number;
+  objective_value_pct_change: number;
+
+  total_revenue_baseline: number;
+  total_revenue_scenario: number;
+  total_revenue_delta: number;
+
+  total_cost_baseline: number;
+  total_cost_scenario: number;
+  total_cost_delta: number;
+
+  net_contribution_baseline: number;
+  net_contribution_scenario: number;
+  net_contribution_delta: number;
+
+  idle_cost_avoided_baseline: number;
+  idle_cost_avoided_scenario: number;
+  idle_cost_avoided_delta: number;
+
+  cargoes_served_baseline: number;
+  cargoes_served_scenario: number;
+  cargoes_served_delta: number;
+
+  cargoes_unserved_baseline: number;
+  cargoes_unserved_scenario: number;
+  cargoes_unserved_delta: number;
+
+  vessels_utilized_baseline: number;
+  vessels_utilized_scenario: number;
+  vessels_utilized_delta: number;
+
+  total_ballast_nm_baseline: number;
+  total_ballast_nm_scenario: number;
+  total_ballast_nm_delta: number;
+
+  unchanged_assignments_count: number;
+  added_assignments_count: number;
+  dropped_assignments_count: number;
+  jaccard_similarity: number;
+  stability_score_pct: number;
+
+  candidate_deltas: CandidateDeltaItem[];
+  cargo_deltas: CargoDeltaItem[];
+  vessel_deltas: VesselDeltaItem[];
+}
+
+export interface SensitivityPointItem {
+  parameter_value: number;
+  parameter_label: string;
+  objective_value: number;
+  total_revenue: number;
+  total_cost: number;
+  net_contribution: number;
+  avoided_idle_cost: number;
+  cargoes_served: number;
+  vessels_utilized: number;
+  selected_candidate_ids: string[];
+  cargo_assignments: Record<number, number>;
+  jaccard_stability: number;
+}
+
+export interface BreakEvenThresholdItem {
+  entity_type: string;
+  entity_id: string | number;
+  entity_name: string;
+  event_type: string;
+  threshold_type: string;
+  parameter_name: string;
+  threshold_value: number | null;
+  lower_bound: number | null;
+  upper_bound: number | null;
+  explanation: string;
+}
+
+export interface SensitivitySweepResponse {
+  parameter_name: string;
+  baseline_run_id: string;
+  baseline_value: number;
+  points: SensitivityPointItem[];
+  break_even_thresholds: BreakEvenThresholdItem[];
+  summary: string;
+}
+
+export interface AssignmentRobustnessItem {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  cargo_id: number | null;
+  cargo_name: string;
+  total_scenarios_evaluated: number;
+  scenarios_preserved: number;
+  robustness_score_pct: number;
+  robustness_tier: "CORE_ROBUST" | "CONDITIONALLY_STABLE" | "FRAGILE";
+  scenarios_selected_in: string[];
+  scenarios_dropped_in: string[];
+  advisory_notes: string;
+}
+
+export interface RobustnessResponse {
+  total_scenarios: number;
+  scenario_ids: string[];
+  overall_fleet_robustness_pct: number;
+  assignments: AssignmentRobustnessItem[];
+  summary: string;
+}
+
+
 
