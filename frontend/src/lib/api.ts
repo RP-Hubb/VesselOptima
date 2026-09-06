@@ -36,6 +36,10 @@ import type {
   ScenarioComparisonResponse,
   SensitivitySweepResponse,
   RobustnessResponse,
+  PlanRiskSimulationResponse,
+  PlanRiskComparisonResponse,
+  RiskRunSummary,
+  RiskVariableConfig,
 } from "@/types/api";
 
 
@@ -350,6 +354,51 @@ export async function runSensitivitySweep(
 
 export async function getEnsembleRobustness(): Promise<RobustnessResponse> {
   return request<RobustnessResponse>("/v1/scenarios/robustness");
+}
+
+// ── Phase 9: Risk Intelligence & Uncertainty API ─────────────────────
+
+export async function getRiskConfigDefaults(): Promise<Record<string, any>> {
+  return request<Record<string, any>>("/v1/risk/config/defaults");
+}
+
+export async function simulatePlanRisk(body: {
+  optimization_run_id?: string;
+  scenario_run_id?: string;
+  simulation_count?: number;
+  random_seed?: number;
+  variables?: RiskVariableConfig[];
+  correlations?: any[];
+  include_demurrage?: boolean;
+  demurrage_daily_rate?: number;
+}): Promise<PlanRiskSimulationResponse> {
+  return request<PlanRiskSimulationResponse>("/v1/risk/simulate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function comparePlanRisk(body: {
+  optimization_run_id_a?: string;
+  optimization_run_id_b?: string;
+  is_demo_flip?: boolean;
+}): Promise<PlanRiskComparisonResponse> {
+  return request<PlanRiskComparisonResponse>("/v1/risk/compare", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getRiskFlipDemo(): Promise<PlanRiskComparisonResponse> {
+  return request<PlanRiskComparisonResponse>("/v1/risk/flip-demo");
+}
+
+export async function getRiskRuns(limit: number = 20): Promise<RiskRunSummary[]> {
+  return request<RiskRunSummary[]>(`/v1/risk/runs?limit=${limit}`);
+}
+
+export async function getRiskRunDetails(runId: string): Promise<Record<string, any>> {
+  return request<Record<string, any>>(`/v1/risk/runs/${runId}`);
 }
 
 export { ApiError };

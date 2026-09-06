@@ -544,6 +544,106 @@ class OptimizationAssignment(AuditMixin, Base):
     cargo = relationship("CargoParcel")
 
 
+# ── Risk Intelligence & Uncertainty ──────────────────────────────────
+
+class RiskRun(AuditMixin, Base):
+    """
+    Phase 9: Record of a Monte Carlo risk simulation run evaluating
+    plan uncertainty, distributions, and downside tail risk.
+    """
+    __tablename__ = "risk_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(128), unique=True, index=True, nullable=False)
+    optimization_run_id = Column(String(128), index=True, nullable=False)
+    scenario_run_id = Column(String(128), index=True, nullable=True)
+    simulation_count = Column(Integer, default=5000, nullable=False)
+    random_seed = Column(Integer, default=42, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+    simulation_parameters = Column(JSON, nullable=True)
+    status = Column(String(32), default="COMPLETED", nullable=False)
+    execution_time_seconds = Column(Float, default=0.0)
+    audit_trail = Column(JSON, nullable=True)
+
+    metrics = relationship("RiskMetric", back_populates="risk_run", uselist=False, cascade="all, delete-orphan")
+    assignment_metrics = relationship("RiskAssignmentMetric", back_populates="risk_run", cascade="all, delete-orphan")
+    drivers = relationship("RiskDriver", back_populates="risk_run", cascade="all, delete-orphan")
+
+
+class RiskMetric(AuditMixin, Base):
+    """
+    Phase 9: Portfolio-level risk metrics, value-at-risk, conditional VaR,
+    loss probabilities, and plan reliability score.
+    """
+    __tablename__ = "risk_metrics"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    risk_run_id = Column(Integer, ForeignKey("risk_runs.id"), nullable=False, index=True)
+    expected_contribution = Column(Float, nullable=False)
+    contribution_std = Column(Float, nullable=False)
+    percentiles = Column(JSON, nullable=False)
+    var90 = Column(Float, nullable=False)
+    var95 = Column(Float, nullable=False)
+    var95_downside = Column(Float, nullable=False)
+    cvar90 = Column(Float, nullable=False)
+    cvar95 = Column(Float, nullable=False)
+    loss_probability = Column(Float, nullable=False)
+    expected_loss = Column(Float, nullable=False)
+    plan_reliability_score = Column(Float, nullable=False)
+    risk_tier = Column(String(32), default="MODERATE", nullable=False)
+    distribution_summary = Column(JSON, nullable=True)
+
+    risk_run = relationship("RiskRun", back_populates="metrics")
+
+
+class RiskAssignmentMetric(AuditMixin, Base):
+    """
+    Phase 9: Detailed risk, schedule fragility, and survival metrics
+    for each vessel-cargo assignment within the simulated plan.
+    """
+    __tablename__ = "risk_assignment_metrics"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    risk_run_id = Column(Integer, ForeignKey("risk_runs.id"), nullable=False, index=True)
+    candidate_id = Column(String(128), nullable=False, index=True)
+    vessel_id = Column(Integer, ForeignKey("vessel_profiles.id"), nullable=False)
+    cargo_id = Column(Integer, ForeignKey("cargo_parcels.id"), nullable=True)
+    expected_net_contribution = Column(Float, nullable=False)
+    contribution_std = Column(Float, nullable=False)
+    loss_probability = Column(Float, nullable=False)
+    cvar95 = Column(Float, nullable=False)
+    expected_arrival = Column(DateTime, nullable=True)
+    p90_arrival = Column(DateTime, nullable=True)
+    schedule_buffer_days = Column(Float, default=0.0)
+    laycan_miss_probability = Column(Float, default=0.0)
+    economic_survival_probability = Column(Float, default=1.0)
+    schedule_survival_probability = Column(Float, default=1.0)
+    risk_tier = Column(String(32), default="MODERATE", nullable=False)
+
+    risk_run = relationship("RiskRun", back_populates="assignment_metrics")
+    vessel = relationship("VesselProfile")
+    cargo = relationship("CargoParcel")
+
+
+class RiskDriver(AuditMixin, Base):
+    """
+    Phase 9: Sensitivity and variance attribution of uncertain risk variables
+    to portfolio outcome volatility.
+    """
+    __tablename__ = "risk_drivers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    risk_run_id = Column(Integer, ForeignKey("risk_runs.id"), nullable=False, index=True)
+    variable_id = Column(String(64), nullable=False)
+    variable_name = Column(String(128), nullable=False)
+    category = Column(String(64), nullable=False)
+    uncertainty_contribution_pct = Column(Float, nullable=False)
+    sensitivity_coefficient = Column(Float, default=0.0)
+
+    risk_run = relationship("RiskRun", back_populates="drivers")
+
+
+
 # ── Recommendations ──────────────────────────────────────────────────
 
 class Recommendation(AuditMixin, Base):

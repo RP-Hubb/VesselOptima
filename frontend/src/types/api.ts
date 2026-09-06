@@ -881,5 +881,127 @@ export interface RobustnessResponse {
   summary: string;
 }
 
+// ── Phase 9: Risk Intelligence & Uncertainty Types ──────────────────
 
+export type RiskTier = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
 
+export interface RiskVariableConfig {
+  variable_id: string;
+  name: string;
+  category: string;
+  distribution_type: string;
+  parameters: Record<string, number>;
+  baseline_value?: number;
+  unit: string;
+  provenance: string;
+  source_ref?: string;
+}
+
+export interface RiskCorrelationConfig {
+  variable_ids: string[];
+  matrix: number[][];
+}
+
+export interface AssignmentRiskResponse {
+  candidate_id: string;
+  vessel_id: number;
+  vessel_name: string;
+  cargo_id: number | null;
+  cargo_name: string;
+  expected_revenue: number;
+  expected_cost: number;
+  expected_net_contribution: number;
+  contribution_std: number;
+  loss_probability: number;
+  var95_downside: number;
+  cvar95: number;
+  expected_arrival: string;
+  p50_arrival: string;
+  p90_arrival: string;
+  p95_arrival: string;
+  laycan_end: string;
+  schedule_buffer_days: number;
+  laycan_miss_probability: number;
+  economic_survival_probability: number;
+  schedule_survival_probability: number;
+  combined_survival_probability: number;
+  risk_tier: RiskTier;
+}
+
+export interface RiskDriverResponse {
+  variable_id: string;
+  name: string;
+  category: string;
+  uncertainty_contribution_pct: number;
+  sensitivity_coefficient: number;
+  label: string;
+}
+
+export interface HistogramBinResponse {
+  bin_start: number;
+  bin_end: number;
+  count: number;
+  frequency: number;
+}
+
+export interface PlanRiskSimulationResponse {
+  run_id: string;
+  optimization_run_id: string;
+  scenario_run_id: string | null;
+  simulation_count: number;
+  random_seed: number;
+  expected_portfolio_contribution: number;
+  portfolio_contribution_std: number;
+  expected_portfolio_revenue: number;
+  expected_portfolio_cost: number;
+  percentiles: Record<string, number>;
+  var90_level: number;
+  var95_level: number;
+  var90_downside: number;
+  var95_downside: number;
+  cvar90: number;
+  cvar95: number;
+  loss_probability: number;
+  expected_loss: number;
+  plan_reliability_score: number;
+  risk_tier: RiskTier;
+  assignments: AssignmentRiskResponse[];
+  drivers: RiskDriverResponse[];
+  distribution_histogram: HistogramBinResponse[];
+  provenance_audit: Record<string, any>[];
+}
+
+export interface PlanRiskComparisonResponse {
+  plan_a_id: string;
+  plan_a_name: string;
+  plan_b_id: string;
+  plan_b_name: string;
+  plan_a_expected_contribution: number;
+  plan_b_expected_contribution: number;
+  expected_contribution_delta: number;
+  plan_a_loss_probability: number;
+  plan_b_loss_probability: number;
+  plan_a_cvar95: number;
+  plan_b_cvar95: number;
+  plan_a_reliability_score: number;
+  plan_b_reliability_score: number;
+  trade_off_summary: string;
+  recommendation_notes: string;
+}
+
+export interface RiskRunSummary {
+  run_id: string;
+  optimization_run_id: string;
+  scenario_run_id: string | null;
+  simulation_count: number;
+  random_seed: number;
+  status: string;
+  execution_time_seconds: number;
+  created_at: string | null;
+  expected_contribution: number | null;
+  var95_downside: number | null;
+  cvar95: number | null;
+  loss_probability: number | null;
+  plan_reliability_score: number | null;
+  risk_tier: RiskTier | null;
+}

@@ -37,9 +37,14 @@ from app.models.domain import (
     OptimizationAssignment,
     ScenarioEvaluation,
     ScenarioSensitivityRun,
+    RiskRun,
+    RiskMetric,
+    RiskAssignmentMetric,
+    RiskDriver,
 )
 
 __all__ = [
+
     "RuntimeModeEvent",
     "DataSource",
     "OfflinePackage",
@@ -72,5 +77,10 @@ __all__ = [
     "ProcurementEvaluation",
     "EmploymentOpportunity",
     "IdleAssessment",
+    "RiskRun",
+    "RiskMetric",
+    "RiskAssignmentMetric",
+    "RiskDriver",
 ]
+
 
