@@ -1139,3 +1139,165 @@ export interface DecisionRunSummary {
   created_at: string | null;
 }
 
+// ── Phase 11 Governance Types ────────────────────────────────────────
+
+export type GovernancePackageStatus =
+  | "DRAFT"
+  | "VALIDATED"
+  | "SUBMITTED"
+  | "UNDER_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "ARCHIVED";
+
+export type InstitutionalRole =
+  | "ANALYST"
+  | "REVIEWER"
+  | "APPROVER"
+  | "ADMIN"
+  | "AUDITOR"
+  | "SYSTEM";
+
+export interface DecisionPackageResponse {
+  id?: number;
+  package_id: string;
+  version_number: number;
+  parent_package_id?: string | null;
+  title: string;
+  description?: string | null;
+  status: GovernancePackageStatus;
+  optimization_run_id: string;
+  scenario_run_id?: string | null;
+  risk_run_id?: string | null;
+  decision_run_id: string;
+  configuration_id?: string | null;
+  configuration_version: string;
+  engine_versions: Record<string, string>;
+  recommendation_type: string;
+  decision_score: number;
+  confidence: string;
+  decision_stability: number;
+  expected_contribution: number;
+  risk_adjusted_contribution: number;
+  loss_probability: number;
+  cvar_95: number;
+  plan_reliability: number;
+  evidence_summary: Record<string, unknown>;
+  actions_summary: Record<string, unknown>[];
+  threshold_config: Record<string, unknown>;
+  input_hash: string;
+  output_hash: string;
+  package_hash: string;
+  created_by?: string | null;
+  created_by_role: string;
+  is_override: boolean;
+  override_recommendation?: string | null;
+  override_reason?: string | null;
+  created_at?: string | null;
+}
+
+export interface DecisionPackageSummary {
+  package_id: string;
+  version_number: number;
+  title: string;
+  status: GovernancePackageStatus;
+  recommendation_type: string;
+  decision_score: number;
+  confidence: string;
+  expected_contribution: number;
+  risk_adjusted_contribution: number;
+  created_by?: string | null;
+  is_override: boolean;
+  created_at?: string | null;
+}
+
+export interface PackageValidationResponse {
+  is_valid: boolean;
+  reason_code: string;
+  missing_elements: string[];
+  messages: string[];
+}
+
+export interface PackageComparisonResponse {
+  base_package_id: string;
+  base_version: number;
+  target_package_id: string;
+  target_version: number;
+  decision_changed: boolean;
+  recommendation_flip?: string | null;
+  score_delta: number;
+  contribution_delta: number;
+  cvar_delta: number;
+  loss_prob_delta: number;
+  reliability_delta: number;
+  changed_factors: string[];
+  comparison_summary: string;
+}
+
+export interface AuditChainVerificationResponse {
+  is_valid: boolean;
+  status: string;
+  event_count: number;
+  verified_count: number;
+  broken_links: number;
+  first_broken_event?: string | null;
+  failure_reason?: string | null;
+}
+
+export interface ReproductionResponse {
+  package_id: string;
+  status: string;
+  is_reproducible: boolean;
+  original_score: number;
+  reproduced_score: number;
+  original_recommendation: string;
+  reproduced_recommendation: string;
+  mismatched_fields: string[];
+  details: Record<string, unknown>;
+}
+
+export interface DecisionRecordExportResponse {
+  package_id: string;
+  version_number: number;
+  status: string;
+  title: string;
+  recommendation_type: string;
+  decision_score: number;
+  confidence: string;
+  expected_contribution: number;
+  risk_adjusted_contribution: number;
+  loss_probability: number;
+  cvar_95: number;
+  plan_reliability: number;
+  evidence_references: Record<string, unknown>;
+  engine_versions: Record<string, string>;
+  configuration_snapshot: Record<string, unknown>;
+  audit_chain_summary: Record<string, unknown>;
+  approval_history: Record<string, unknown>[];
+  override_history: Record<string, unknown>[];
+  input_hash: string;
+  output_hash: string;
+  package_hash: string;
+  exported_at: string;
+  memo_markdown: string;
+}
+
+export interface DecisionConfigurationResponse {
+  configuration_id: string;
+  version: string;
+  name: string;
+  description: string;
+  status: string;
+  economic_weight: number;
+  reliability_weight: number;
+  robustness_weight: number;
+  tail_risk_weight: number;
+  schedule_weight: number;
+  recommendation_thresholds: Record<string, number>;
+  confidence_thresholds: Record<string, number>;
+  risk_thresholds: Record<string, number>;
+  config_hash: string;
+  effective_date: string;
+}
+
+

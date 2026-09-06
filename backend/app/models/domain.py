@@ -777,6 +777,183 @@ class DecisionTradeoff(AuditMixin, Base):
     decision_run = relationship("DecisionRun", back_populates="tradeoffs")
 
 
+# ── Decision Governance, Audit & Institutional Control (Phase 11) ────
+
+class DecisionPackage(AuditMixin, Base):
+    """
+    Phase 11: Master institutional record of a finalized, auditable decision.
+    Contains immutable references to Phase 7–10 artifacts, lifecycle status,
+    and cryptographic provenance hashes.
+    """
+    __tablename__ = "decision_packages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(String(128), unique=True, index=True, nullable=False)
+    version_number = Column(Integer, default=1, nullable=False)
+    parent_package_id = Column(String(128), nullable=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(64), default="DRAFT", nullable=False)  # DRAFT, VALIDATED, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, ARCHIVED
+    optimization_run_id = Column(String(128), nullable=False, index=True)
+    scenario_run_id = Column(String(128), nullable=True, index=True)
+    risk_run_id = Column(String(128), nullable=True, index=True)
+    decision_run_id = Column(String(128), nullable=False, index=True)
+    configuration_id = Column(String(128), nullable=True, index=True)
+    configuration_version = Column(String(32), default="1.0.0", nullable=False)
+    engine_versions = Column(JSON, nullable=True)
+    recommendation_type = Column(String(64), nullable=False)
+    decision_score = Column(Float, nullable=False)
+    confidence = Column(String(32), default="HIGH", nullable=False)
+    decision_stability = Column(Float, default=1.0, nullable=False)
+    expected_contribution = Column(Float, nullable=False)
+    risk_adjusted_contribution = Column(Float, nullable=False)
+    loss_probability = Column(Float, nullable=False)
+    cvar_95 = Column(Float, nullable=False)
+    plan_reliability = Column(Float, nullable=False)
+    evidence_summary = Column(JSON, nullable=True)
+    actions_summary = Column(JSON, nullable=True)
+    threshold_config = Column(JSON, nullable=True)
+    input_hash = Column(String(128), nullable=False)
+    output_hash = Column(String(128), nullable=False)
+    package_hash = Column(String(128), nullable=False)
+    created_by_role = Column(String(64), default="ANALYST", nullable=False)
+    is_override = Column(Boolean, default=False, nullable=False)
+    runtime_mode = Column(Enum(RuntimeModeEnum), default=RuntimeModeEnum.OFFLINE_DEMO, nullable=False)
+    audit_trail = Column(JSON, nullable=True)
+
+    versions = relationship("DecisionPackageVersion", back_populates="package", cascade="all, delete-orphan")
+    audit_events = relationship("GovernanceAuditEvent", back_populates="package", cascade="all, delete-orphan")
+    approvals = relationship("ApprovalAction", back_populates="package", cascade="all, delete-orphan")
+    overrides = relationship("DecisionOverride", back_populates="package", cascade="all, delete-orphan")
+
+
+class DecisionPackageVersion(AuditMixin, Base):
+    """
+    Phase 11: Version history for Decision Packages.
+    Every update creates an immutable incremental version (V1 -> V2).
+    """
+    __tablename__ = "decision_package_versions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(Integer, ForeignKey("decision_packages.id"), nullable=False, index=True)
+    version_number = Column(Integer, nullable=False)
+    version_tag = Column(String(64), nullable=False)
+    parent_version_tag = Column(String(64), nullable=True)
+    package_hash = Column(String(128), nullable=False)
+    input_hash = Column(String(128), nullable=False)
+    output_hash = Column(String(128), nullable=False)
+    change_summary = Column(Text, nullable=False)
+    changed_fields = Column(JSON, nullable=True)
+    evidence_snapshot = Column(JSON, nullable=False)
+    configuration_version = Column(String(32), nullable=False)
+
+    package = relationship("DecisionPackage", back_populates="versions")
+
+
+class GovernanceAuditEvent(AuditMixin, Base):
+    """
+    Phase 11: Cryptographically hash-chained, append-only governance audit event.
+    Provides tamper-evident record of all lifecycle events.
+    """
+    __tablename__ = "governance_audit_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(Integer, ForeignKey("decision_packages.id"), nullable=False, index=True)
+    audit_event_id = Column(String(128), unique=True, index=True, nullable=False)
+    sequence_number = Column(Integer, nullable=False)
+    event_type = Column(String(64), nullable=False)
+    actor = Column(String(255), nullable=False)
+    actor_role = Column(String(64), nullable=False)
+    action = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    previous_hash = Column(String(128), nullable=False)
+    event_hash = Column(String(128), nullable=False)
+    metadata_payload = Column(JSON, nullable=True)
+
+    package = relationship("DecisionPackage", back_populates="audit_events")
+
+
+class ApprovalAction(AuditMixin, Base):
+    """
+    Phase 11: Formal governance workflow actions (SUBMIT, REVIEW, APPROVE, REJECT).
+    Enforces separation of duties (creator != approver).
+    """
+    __tablename__ = "approval_actions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(Integer, ForeignKey("decision_packages.id"), nullable=False, index=True)
+    action_type = Column(String(64), nullable=False)
+    actor = Column(String(255), nullable=False)
+    actor_role = Column(String(64), nullable=False)
+    status = Column(String(64), nullable=False)
+    notes = Column(Text, nullable=True)
+
+    package = relationship("DecisionPackage", back_populates="approvals")
+
+
+class DecisionConfiguration(AuditMixin, Base):
+    """
+    Phase 11: Versioned governance of decision scoring weights, thresholds,
+    and institutional risk policies.
+    """
+    __tablename__ = "decision_configurations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    configuration_id = Column(String(128), unique=True, index=True, nullable=False)
+    version = Column(String(32), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(32), default="ACTIVE", nullable=False)  # DRAFT, ACTIVE, RETIRED
+    economic_weight = Column(Float, default=0.35, nullable=False)
+    reliability_weight = Column(Float, default=0.25, nullable=False)
+    robustness_weight = Column(Float, default=0.20, nullable=False)
+    tail_risk_weight = Column(Float, default=0.10, nullable=False)
+    schedule_weight = Column(Float, default=0.10, nullable=False)
+    recommendation_thresholds = Column(JSON, nullable=False)
+    confidence_thresholds = Column(JSON, nullable=False)
+    risk_thresholds = Column(JSON, nullable=False)
+    config_hash = Column(String(128), nullable=False)
+    effective_date = Column(DateTime, nullable=False)
+
+
+class ConfigurationChange(AuditMixin, Base):
+    """
+    Phase 11: Audit log of institutional decision configuration revisions.
+    """
+    __tablename__ = "configuration_changes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    change_id = Column(String(128), unique=True, index=True, nullable=False)
+    old_configuration_id = Column(String(128), nullable=True)
+    new_configuration_id = Column(String(128), nullable=False)
+    changed_fields = Column(JSON, nullable=False)
+    reason = Column(Text, nullable=False)
+    actor = Column(String(255), nullable=False)
+    actor_role = Column(String(64), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
+
+
+class DecisionOverride(AuditMixin, Base):
+    """
+    Phase 11: Explicit human override of an analytical model recommendation.
+    Preserves original recommendation and enforces formal justification & attribution.
+    """
+    __tablename__ = "decision_overrides"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    package_id = Column(Integer, ForeignKey("decision_packages.id"), nullable=False, index=True)
+    override_id = Column(String(128), unique=True, index=True, nullable=False)
+    original_recommendation = Column(String(64), nullable=False)
+    override_recommendation = Column(String(64), nullable=False)
+    reason = Column(Text, nullable=False)
+    actor = Column(String(255), nullable=False)
+    actor_role = Column(String(64), nullable=False)
+    supporting_note = Column(Text, nullable=True)
+    approval_actor = Column(String(255), nullable=True)
+    approval_status = Column(String(32), default="PENDING", nullable=False)
+
+    package = relationship("DecisionPackage", back_populates="overrides")
+
 
 # ── Recommendations ──────────────────────────────────────────────────
 

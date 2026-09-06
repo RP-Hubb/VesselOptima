@@ -46,6 +46,13 @@ from app.models.domain import (
     DecisionEvidence,
     DecisionAction,
     DecisionTradeoff,
+    DecisionPackage,
+    DecisionPackageVersion,
+    GovernanceAuditEvent,
+    ApprovalAction,
+    DecisionConfiguration,
+    ConfigurationChange,
+    DecisionOverride,
 )
 
 __all__ = [
@@ -91,6 +98,13 @@ __all__ = [
     "DecisionEvidence",
     "DecisionAction",
     "DecisionTradeoff",
+    "DecisionPackage",
+    "DecisionPackageVersion",
+    "GovernanceAuditEvent",
+    "ApprovalAction",
+    "DecisionConfiguration",
+    "ConfigurationChange",
+    "DecisionOverride",
 ]
 
 

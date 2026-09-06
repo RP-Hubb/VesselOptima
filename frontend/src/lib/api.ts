@@ -42,6 +42,14 @@ import type {
   RiskVariableConfig,
   DecisionResultResponse,
   DecisionRunSummary,
+  DecisionPackageResponse,
+  DecisionPackageSummary,
+  PackageValidationResponse,
+  PackageComparisonResponse,
+  AuditChainVerificationResponse,
+  ReproductionResponse,
+  DecisionRecordExportResponse,
+  DecisionConfigurationResponse,
 } from "@/types/api";
 
 
@@ -432,6 +440,136 @@ export async function getDecisionRun(runId: string): Promise<DecisionResultRespo
 
 export async function getDecisionThresholds(): Promise<Record<string, any>> {
   return request<Record<string, any>>("/v1/decision/thresholds");
+}
+
+// ── Phase 11: Decision Governance & Institutional Control ────────────
+
+export async function createGovernancePackage(body: {
+  decision_run_id: string;
+  title?: string;
+  description?: string;
+  created_by?: string;
+  created_by_role?: string;
+}): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>("/v1/governance/packages", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function listGovernancePackages(limit: number = 50): Promise<DecisionPackageSummary[]> {
+  return request<DecisionPackageSummary[]>(`/v1/governance/packages?limit=${limit}`);
+}
+
+export async function getGovernancePackage(packageId: string): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}`);
+}
+
+export async function validateGovernancePackage(packageId: string): Promise<PackageValidationResponse> {
+  return request<PackageValidationResponse>(`/v1/governance/packages/${packageId}/validate`, {
+    method: "POST",
+  });
+}
+
+export async function submitGovernancePackage(
+  packageId: string,
+  body: { actor: string; actor_role: string; notes?: string }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/submit`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function reviewGovernancePackage(
+  packageId: string,
+  body: { actor: string; actor_role: string; notes?: string }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/review`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function approveGovernancePackage(
+  packageId: string,
+  body: { actor: string; actor_role: string; notes?: string }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/approve`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function rejectGovernancePackage(
+  packageId: string,
+  body: { actor: string; actor_role: string; reason: string }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/reject`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function recordGovernanceOverride(
+  packageId: string,
+  body: {
+    override_recommendation: string;
+    reason: string;
+    actor: string;
+    actor_role?: string;
+    supporting_note?: string;
+    approval_actor?: string;
+  }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/override`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function createGovernancePackageVersion(
+  packageId: string,
+  body: { updated_evidence: Record<string, any>; change_summary: string; actor?: string }
+): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/packages/${packageId}/versions`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function verifyGovernanceAuditTrail(packageId: string): Promise<AuditChainVerificationResponse> {
+  return request<AuditChainVerificationResponse>(`/v1/governance/packages/${packageId}/verify`, {
+    method: "POST",
+  });
+}
+
+export async function reproduceGovernanceDecision(packageId: string): Promise<ReproductionResponse> {
+  return request<ReproductionResponse>(`/v1/governance/packages/${packageId}/reproduce`, {
+    method: "POST",
+  });
+}
+
+export async function compareGovernancePackages(body: {
+  base_package_id: string;
+  target_package_id: string;
+}): Promise<PackageComparisonResponse> {
+  return request<PackageComparisonResponse>("/v1/governance/compare", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function exportGovernanceDecisionRecord(packageId: string): Promise<DecisionRecordExportResponse> {
+  return request<DecisionRecordExportResponse>(`/v1/governance/packages/${packageId}/export`);
+}
+
+export async function getGovernanceActiveConfiguration(): Promise<DecisionConfigurationResponse> {
+  return request<DecisionConfigurationResponse>("/v1/governance/configurations");
+}
+
+export async function getGovernanceDemoPackage(scenarioType: string = "BASELINE"): Promise<DecisionPackageResponse> {
+  return request<DecisionPackageResponse>(`/v1/governance/demo/${scenarioType}`);
 }
 
 export { ApiError };

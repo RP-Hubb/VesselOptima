@@ -88,37 +88,22 @@
 *   **EXISTING FILES:** `backend/app/models/domain.py` (`DecisionRun`, `DecisionRecommendation`, `DecisionEvidence`, `DecisionAction`, `DecisionTradeoff`), `backend/alembic/versions/10e1f2a3b4c5_add_decision_tables.py`, `backend/app/engines/decision/` (`reason_codes.py`, `models.py`, `scoring.py`, `confidence.py`, `rules.py`, `explanations.py`, `priorities.py`, `tradeoffs.py`, `result.py`, `service.py`, `__init__.py`), `backend/app/schemas/decision.py`, `backend/app/api/v1/decision.py`, `backend/tests/test_decision_engine.py`, `frontend/src/app/decision/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`, `docs/PHASE_10_SPECIFICATION.md`, `docs/PHASE_10_IMPLEMENTATION.md`.
 *   **MISSING:** None
 *   **BROKEN:** None
-*   **NEXT ACTION:** Proceed to Phase 11 (Frontend Terminal Pages & Data Visualizations)
+*   **NEXT ACTION:** Complete (Proceed to Phase 11)
 *   **DEPENDENCIES:** MILP Optimizer (Phase 7), Scenario Engine (Phase 8), Risk Engine (Phase 9)
 
-## 12. Backtest Engine
+## 12. Decision Governance, Audit & Institutional Control Layer (Phase 11)
+*   **STATUS:** COMPLETE (Phase 11: Immutable Packages, SHA-256 Hash Chains, Separation of Duties, Reproducibility & Override Governance)
+*   **EXISTING FILES:** `backend/app/models/domain.py` (`DecisionPackage`, `DecisionPackageVersion`, `GovernanceAuditEvent`, `ApprovalAction`, `DecisionConfiguration`, `ConfigurationChange`, `DecisionOverride`), `backend/alembic/versions/11f2a3b4c5d6_add_governance_tables.py`, `backend/app/engines/governance/` (`reason_codes.py`, `hashing.py`, `models.py`, `package.py`, `approval.py`, `audit.py`, `configuration.py`, `versioning.py`, `service.py`, `__init__.py`), `backend/app/schemas/governance.py`, `backend/app/api/v1/governance.py`, `backend/tests/test_governance_engine.py`, `frontend/src/app/governance/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/SideNav.tsx`, `docs/PHASE_11_SPECIFICATION.md`, `docs/PHASE_11_IMPLEMENTATION.md`.
+*   **MISSING:** None
+*   **BROKEN:** None
+*   **NEXT ACTION:** Proceed to Phase 12 (Backtesting Engine & Historical Validation)
+*   **DEPENDENCIES:** Decision Intelligence (Phase 10), Risk Engine (Phase 9), Scenario Engine (Phase 8), MILP Optimizer (Phase 7)
+
+## 13. Backtest Engine (Phase 12)
 *   **STATUS:** MISSING
 *   **EXISTING FILES:** None
 *   **MISSING:** Chronological simulation, baseline comparators, metrics aggregation.
 *   **BROKEN:** None
 *   **NEXT ACTION:** Implement backtesting framework.
-*   **DEPENDENCIES:** Risk + Scenarios
+*   **DEPENDENCIES:** Risk + Scenarios + Decision Engine
 
-## 11. FastAPI Integration
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** API endpoints, OpenAPI documentation, runtime mode (LIVE/OFFLINE) handlers.
-*   **BROKEN:** None
-*   **NEXT ACTION:** Wire up all backend services to API routes.
-*   **DEPENDENCIES:** All Backend Engines
-
-## 12. Frontend Terminal (Next.js)
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Next.js pages, UI components, API integration, ECharts/TanStack tables.
-*   **BROKEN:** None
-*   **NEXT ACTION:** Develop professional institutional terminal UI.
-*   **DEPENDENCIES:** FastAPI Integration
-
-## 13. Audit + E2E
-*   **STATUS:** MISSING
-*   **EXISTING FILES:** None
-*   **MISSING:** Audit trails for decisions, E2E workflow validation, reproducibility tests.
-*   **BROKEN:** None
-*   **NEXT ACTION:** Implement audit logging and final testing.
-*   **DEPENDENCIES:** Frontend Terminal, FastAPI Integration
