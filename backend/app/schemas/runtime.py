@@ -61,5 +61,7 @@ class RuntimeStatusResponse(BaseModel):
     sources: List[SourceHealth] = []
     offline_package_id: Optional[str] = None
     offline_package_coverage: Optional[str] = None
+    available_packages: List[str] = []
+    is_live_operational: bool = False
     model_artifacts_status: Optional[str] = None
     timestamp: datetime

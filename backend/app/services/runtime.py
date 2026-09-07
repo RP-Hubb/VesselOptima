@@ -94,9 +94,23 @@ class RuntimeService:
             return "offline-demo-context"
         return "live-context"
 
+    def discover_offline_packages(self) -> list[str]:
+        """Discovers available offline packages on disk without network dependency."""
+        from pathlib import Path
+        pkg_dir = Path(__file__).resolve().parents[3] / "data" / "offline" / "packages"
+        if not pkg_dir.exists():
+            return ["demo-v1"]
+        packages = []
+        for item in pkg_dir.iterdir():
+            if item.is_dir() or item.name.endswith(".tar.gz"):
+                pkg_name = item.name[:-7] if item.name.endswith(".tar.gz") else item.name
+                if pkg_name not in packages:
+                    packages.append(pkg_name)
+        return sorted(packages) if packages else ["demo-v1"]
+
     def _resolve_offline_package_id(self, mode: RuntimeMode) -> str | None:
-        """Only return a package ID in OFFLINE_DEMO mode."""
+        """Only return an active package ID in OFFLINE_DEMO mode."""
         if mode == RuntimeMode.OFFLINE_DEMO:
-            # Phase 2 will implement actual package lookup
-            return None
+            pkgs = self.discover_offline_packages()
+            return pkgs[0] if pkgs else "demo-v1"
         return None

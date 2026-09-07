@@ -64,7 +64,28 @@ class ForecastResponse(BaseModel):
     model_info: ModelInfo
     validation_metrics: ModelValidationMetrics
     candidate_metrics: Dict[str, Any]
+    explainability: Optional[Dict[str, Any]] = None
     generated_at: str
+
+
+class ForecastDriver(BaseModel):
+    feature: str
+    impact: float
+    direction: str
+    rank: int
+    value: float
+
+
+class ForecastExplainResponse(BaseModel):
+    target: str
+    series_id: str
+    method: str
+    model_name: str
+    base_value: float
+    prediction_value: float
+    drivers: List[ForecastDriver]
+    top_drivers: List[ForecastDriver]
+    summary: str
 
 
 class ForecastTrainRequest(BaseModel):

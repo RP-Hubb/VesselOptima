@@ -48,13 +48,17 @@ def evaluate_port_constraints(
     """
     result = PortCheckResult(port_id=port_id, port_name=port_name, role=role)
 
-    # If no specific constraints exist in the database for this port, record an explicit check
+    # If no specific constraints exist in the database for this port, mark as UNKNOWN / BLOCKED
     if not constraints:
+        result.is_pass = False
+        result.failed_checks.append(f"{role.lower()}_constraints")
+        result.reason_codes.append(FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED)
         result.checks[f"{role.lower()}_constraints"] = {
-            "status": "PASS",
-            "message": f"No restrictive constraints recorded for {port_name} ({role}).",
+            "status": "UNKNOWN",
+            "message": f"Physical navigation constraints (draft, LOA, beam) not recorded for {port_name} ({role}); navigation clearance unverified.",
             "port_name": port_name,
             "role": role,
+            "reason_code": FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED.value,
         }
         return result
 

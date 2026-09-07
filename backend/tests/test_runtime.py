@@ -102,3 +102,34 @@ def test_no_third_mode_exists(client):
             "confirmation": True,
         })
         assert response.status_code == 422, f"Mode '{mode}' should be rejected but got {response.status_code}"
+
+
+def test_offline_package_enumeration(client):
+    """DEF-011: Runtime status enumerates available offline packages on disk."""
+    response = client.get("/v1/runtime/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert "available_packages" in data
+    assert isinstance(data["available_packages"], list)
+    assert len(data["available_packages"]) > 0
+    assert "demo-v1" in data["available_packages"]
+
+
+def test_live_mode_transparency(client):
+    """DEF-004: Switching to LIVE mode explicitly surfaces non-operational source status."""
+    # Switch to LIVE mode
+    client.put("/v1/runtime/mode", json={"mode": "LIVE", "confirmation": True, "reason": "Testing live transparency"})
+    try:
+        response = client.get("/v1/runtime/status")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["mode"] == "LIVE"
+        assert data["is_live_operational"] is False
+        assert data["app_status"] == "degraded"
+        assert len(data["sources"]) > 0
+        for s in data["sources"]:
+            assert s["status"] == "unavailable"
+            assert "Live API credentials not configured" in s["error"]
+    finally:
+        # Switch back to OFFLINE_DEMO
+        client.put("/v1/runtime/mode", json={"mode": "OFFLINE_DEMO", "confirmation": True, "reason": "Restoring demo mode"})

@@ -1,8 +1,8 @@
 # IMPLEMENTATION_STATUS
 
 ## 1. Repository Structure & Configuration
-*   **STATUS:** COMPLETE (Phase 1)
-*   **EXISTING FILES:** `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `backend/.env.example`, `frontend/.env.example`, `README.md`, `.gitignore`, `backend/app/core/config.py`, `backend/app/core/logging.py`, `backend/app/core/runtime.py`
+*   **STATUS:** COMPLETE (Phase 1 & Hardening)
+*   **EXISTING FILES:** `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `backend/.env.example`, `frontend/.env.example`, `README.md`, `.gitignore`, `backend/app/core/config.py`, `backend/app/core/logging.py`, `backend/app/schemas/runtime.py`, `backend/app/services/runtime.py`, `backend/app/api/v1/runtime.py`
 *   **MISSING:** None
 *   **BROKEN:** None
 *   **NEXT ACTION:** Proceed to Phase 2 (Offline Data Package & Ingestion Engine)
@@ -112,7 +112,8 @@
 *   **EXISTING FILES:** `backend/app/models/domain.py` (`BacktestConfiguration`, `BacktestRun`, `BacktestSnapshot`, `BacktestDecision`, `BacktestOutcome`, `BacktestBenchmark`, `BacktestBenchmarkResult`, `BacktestMetric`, `BacktestAttribution`, `BacktestLeakage`, `BacktestTimeline`), `backend/alembic/versions/13b4c5d6e7f8_add_backtesting_tables.py`, `backend/app/engines/backtest/` (`reason_codes.py`, `events.py`, `snapshot.py`, `leakage.py`, `timeline.py`, `benchmarks.py`, `outcome.py`, `metrics.py`, `attribution.py`, `orchestrator.py`, `service.py`, `__init__.py`), `backend/app/schemas/backtest.py`, `backend/app/api/v1/backtest.py`, `backend/tests/test_backtesting.py` (44/44 PASS), `frontend/src/app/backtest/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_13_SPECIFICATION.md`, `docs/PHASE_13_IMPLEMENTATION.md`, `docs/PHASE_13_BACKTEST_METHODOLOGY.md`, `docs/PHASE_13_STATUS.md`.
 *   **MISSING:** None
 *   **BROKEN:** None
-*   **TESTS:** Phase 13: 44/44 PASS | Full Platform Regression: 276/276 PASS (100% green)
+*   **TESTS:** Phase 13: 44/44 PASS | Hardening Verification: 17/17 PASS | Full Platform Regression: 293/293 PASS (100% green)
+*   **HARDENING STATUS:** DEF-001 through DEF-011 fully remediated, verified, and audited. UNCONDITIONAL GO for production deployment.
 *   **NEXT ACTION:** Complete. Platform baseline fully verified and ready for Phase 14 (Fleet Carbon & CII / FuelEU Compliance Engine).
 *   **DEPENDENCIES:** Phase 12 (Data Governance), Phase 11 (Decision Governance), Phase 10 (Decision Intelligence), Phase 9 (Risk), Phase 8 (Scenarios), Phase 7 (HiGHS MILP Optimizer).
 

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.engines.forecast.service import ForecastService
 from app.schemas.forecast import (
+    ForecastExplainResponse,
     ForecastResponse,
     ForecastTrainRequest,
     SeriesCatalogItem,
@@ -28,6 +29,26 @@ def list_forecast_series(db: Session = Depends(get_db)):
     """
     service = ForecastService(db=db)
     return service.get_supported_series()
+
+
+@router.get("/explain/{series_id}", response_model=ForecastExplainResponse)
+@router.get("/{target}/{series_id}/explain", response_model=ForecastExplainResponse)
+def get_forecast_explainability(
+    series_id: str,
+    target: str = "indices",
+    db: Session = Depends(get_db),
+):
+    """
+    Returns feature attribution explainability (TreeSHAP or transparent decomposition)
+    for the specified forecast series, detailing the top drivers influencing predictions.
+    """
+    service = ForecastService(db=db)
+    try:
+        return service.get_forecast_explanation(series_id=series_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Explainability error: {e}")
 
 
 @router.get("/{target}/{series_id}", response_model=ForecastResponse)
@@ -84,3 +105,4 @@ def train_forecast_series(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Training error: {e}")
+

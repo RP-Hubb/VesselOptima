@@ -51,6 +51,23 @@ class BaseForecastModel(ABC):
         """Generate out-of-sample point forecast for horizon_days."""
         pass
 
+    def explain(
+        self,
+        history: pd.Series,
+        last_date: pd.Timestamp,
+    ) -> Dict[str, Any]:
+        """Provides explainability / feature attribution for the forecast prediction."""
+        base_val = float(history.iloc[-1]) if len(history) > 0 else 0.0
+        return {
+            "method": "Transparent Baseline Decomposition",
+            "model_name": self.name,
+            "base_value": round(base_val, 4),
+            "prediction_value": round(base_val, 4),
+            "drivers": [],
+            "top_drivers": [],
+            "summary": f"Baseline model '{self.name}' carries forward historical level ({base_val:.2f}) without exogenous features.",
+        }
+
 
 class NaivePersistenceModel(BaseForecastModel):
     """
@@ -255,3 +272,62 @@ class XGBoostForecastModel(BaseForecastModel):
             curr_history.append(pred_val)
 
         return np.array(predictions, dtype=np.float64)
+
+    def explain(
+        self,
+        history: pd.Series,
+        last_date: pd.Timestamp,
+    ) -> Dict[str, Any]:
+        """
+        Computes exact TreeSHAP (Lundberg et al.) feature attribution values
+        for the forecast prediction at step t+1.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("XGBoost model must be fitted before explain.")
+
+        import xgboost as xgb
+
+        next_date = last_date + timedelta(days=1)
+        feature_row = self.feature_service.extract_inference_row(
+            historical_series=pd.Series(list(history.values)),
+            target_date=next_date,
+        )
+
+        dmat = xgb.DMatrix(feature_row)
+        booster = self.regressor.get_booster()
+        contribs = booster.predict(dmat, pred_contribs=True)[0]  # shape: (num_features + 1,)
+
+        feature_names = list(feature_row.columns)
+        shap_values = contribs[:-1]
+        base_value = float(contribs[-1])
+
+        drivers = []
+        for i, fname in enumerate(feature_names):
+            impact = float(shap_values[i])
+            val = float(feature_row.iloc[0, i])
+            drivers.append({
+                "feature": fname,
+                "impact": round(impact, 4),
+                "direction": "+" if impact >= 0 else "-",
+                "value": round(val, 4),
+            })
+
+        # Sort by descending absolute impact
+        drivers.sort(key=lambda d: abs(d["impact"]), reverse=True)
+        for rank, d in enumerate(drivers, 1):
+            d["rank"] = rank
+
+        pred_val = max(0.0, float(self.regressor.predict(feature_row)[0]))
+
+        return {
+            "method": "TreeSHAP (Lundberg et al.)",
+            "model_name": self.name,
+            "base_value": round(base_value, 4),
+            "prediction_value": round(pred_val, 4),
+            "drivers": drivers,
+            "top_drivers": drivers[:5],
+            "summary": (
+                f"Top driver '{drivers[0]['feature']}' contributed {drivers[0]['impact']:+.2f} "
+                f"to baseline expectation of {base_value:.2f} (predicted: {pred_val:.2f})."
+            ) if drivers else "No drivers evaluated.",
+        }

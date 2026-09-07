@@ -691,3 +691,23 @@ def test_governance_air_gap_compliance(monkeypatch):
         "configuration_id": "CONFIG-1",
     })
     assert res.is_valid is True
+
+
+def test_governance_identity_assertion_and_role_validation(client):
+    """Empty actor or unrecognized institutional roles are rejected with 400 (DEF-008)."""
+    # 1. Reject empty actor
+    resp_empty = client.post(
+        "/v1/governance/packages",
+        json={"decision_run_id": "DEC-100", "created_by": "", "created_by_role": "ANALYST"},
+    )
+    assert resp_empty.status_code == 400
+    assert "identity assertion required" in resp_empty.json()["detail"]
+
+    # 2. Reject unrecognized role
+    resp_bad_role = client.post(
+        "/v1/governance/packages",
+        json={"decision_run_id": "DEC-100", "created_by": "analyst1", "created_by_role": "HACKER_ROLE"},
+    )
+    assert resp_bad_role.status_code == 400
+    assert "Invalid actor role" in resp_bad_role.json()["detail"]
+

@@ -922,84 +922,67 @@ export default function BacktestConsolePage() {
                           </span>
                         </td>
                         <td style={{ padding: "8px", fontWeight: 700, color: "#10b981" }}>
-                          {fmtUsd(metrics?.economic?.total_realized_contribution_usd ?? 570000)}
+                          {fmtUsd(metrics?.economic?.total_realized_contribution_usd ?? currentRun?.metrics_summary?.economic?.total_realized_contribution_usd ?? 0)}
                         </td>
                         <td style={{ padding: "8px", fontWeight: 700, color: "#10b981" }}>— (Baseline)</td>
                         <td style={{ padding: "8px", fontWeight: 700, color: "#10b981" }}>—</td>
                         <td style={{ padding: "8px" }}>
-                          {metrics?.operational?.vessel_utilization_pct != null ? `${metrics.operational.vessel_utilization_pct.toFixed(1)}%` : "88.5%"}
+                          {metrics?.operational?.vessel_utilization_pct != null ? `${metrics.operational.vessel_utilization_pct.toFixed(1)}%` : "—"}
                         </td>
                         <td style={{ padding: "8px", color: "var(--muted)" }}>
                           Global multi-vessel multi-cargo mathematical optimization with laycan survival constraints
                         </td>
                       </tr>
 
-                      {/* Benchmark Rows */}
-                      {[
-                        {
-                          name: "Best Expected Contribution (Greedy)",
-                          code: "BEST_EXPECTED_CONTRIBUTION",
-                          type: "GREEDY HEURISTIC",
-                          usd: 400000,
-                          util: "78.2%",
-                          desc: "Locally assigns best expected margin per single vessel without multi-voyage coordination",
-                        },
-                        {
-                          name: "First Feasible Match",
-                          code: "FIRST_FEASIBLE",
-                          type: "HEURISTIC",
-                          usd: 280000,
-                          util: "65.0%",
-                          desc: "Assigns first feasible open cargo satisfying laycan and draft constraints",
-                        },
-                        {
-                          name: "Continue Current Employment",
-                          code: "CONTINUE_CURRENT_EMPLOYMENT",
-                          type: "STATUS QUO",
-                          usd: 150000,
-                          util: "52.0%",
-                          desc: "Rolls existing charter/employment without proactive spot market exploration",
-                        },
-                        {
-                          name: "Historical Actual Realized",
-                          code: "HISTORICAL_ACTUAL",
-                          type: "EX-POST BENCHMARK",
-                          usd: 430000,
-                          util: "81.0%",
-                          desc: "Actual physical fixture records executed historically by chartering desk",
-                        },
-                        {
-                          name: "No Action (Cold Layup / Idle)",
-                          code: "NO_ACTION",
-                          type: "PASSIVE",
-                          usd: -45000,
-                          util: "0.0%",
-                          desc: "Vessels remain idle in port incurring daily hot/cold port and maintenance costs",
-                        },
-                      ].map((b) => {
-                        const voContribution = metrics?.economic?.total_realized_contribution_usd ?? 570000;
-                        const delta = voContribution - b.usd;
-                        const pct = b.usd > 0 ? ((delta / b.usd) * 100).toFixed(1) : "N/A";
-                        return (
-                          <tr key={b.code} style={{ borderBottom: "1px solid var(--border)" }}>
-                            <td style={{ padding: "8px", fontWeight: 600 }}>{b.name}</td>
-                            <td style={{ padding: "8px" }}>
-                              <span style={{ fontSize: "0.6875rem", padding: "2px 6px", background: "var(--surface-2)", borderRadius: "3px" }}>
-                                {b.type}
-                              </span>
-                            </td>
-                            <td style={{ padding: "8px" }}>{fmtUsd(b.usd)}</td>
-                            <td style={{ padding: "8px", color: delta > 0 ? "#10b981" : "#ef4444", fontWeight: 600 }}>
-                              +{fmtUsd(delta)}
-                            </td>
-                            <td style={{ padding: "8px", color: "#10b981", fontWeight: 600 }}>
-                              {pct !== "N/A" ? `+${pct}%` : "—"}
-                            </td>
-                            <td style={{ padding: "8px" }}>{b.util}</td>
-                            <td style={{ padding: "8px", color: "var(--muted)", fontSize: "0.75rem" }}>{b.desc}</td>
-                          </tr>
-                        );
-                      })}
+                      {/* Benchmark Rows (Dynamic API Binding) */}
+                      {loading ? (
+                        <tr>
+                          <td colSpan={7} style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
+                            Loading benchmark simulation data from decision replay engine...
+                          </td>
+                        </tr>
+                      ) : benchmarks && benchmarks.length > 0 ? (
+                        benchmarks.map((b) => {
+                          const voContribution = metrics?.economic?.total_realized_contribution_usd ?? currentRun?.metrics_summary?.economic?.total_realized_contribution_usd ?? 0;
+                          const delta = voContribution - b.realized_contribution;
+                          const pct = b.realized_contribution > 0 ? ((delta / b.realized_contribution) * 100).toFixed(1) : "N/A";
+                          const utilStr = b.vessel_utilization != null
+                            ? b.vessel_utilization > 1
+                              ? `${b.vessel_utilization.toFixed(1)}%`
+                              : `${(b.vessel_utilization * 100).toFixed(1)}%`
+                            : "—";
+                          const descStr: string = typeof b.details?.description === "string" 
+                            ? b.details.description 
+                            : typeof b.details?.desc === "string" 
+                            ? b.details.desc 
+                            : String(b.benchmark_name || b.benchmark_code || "Alternative Strategy");
+                          return (
+                            <tr key={b.id || b.benchmark_code} style={{ borderBottom: "1px solid var(--border)" }}>
+                              <td style={{ padding: "8px", fontWeight: 600 }}>{b.benchmark_name || b.benchmark_code}</td>
+                              <td style={{ padding: "8px" }}>
+                                <span style={{ fontSize: "0.6875rem", padding: "2px 6px", background: "var(--surface-2)", borderRadius: "3px" }}>
+                                  {b.strategy_type || "BENCHMARK"}
+                                </span>
+                              </td>
+                              <td style={{ padding: "8px" }}>{fmtUsd(b.realized_contribution)}</td>
+                              <td style={{ padding: "8px", color: delta >= 0 ? "#10b981" : "#ef4444", fontWeight: 600 }}>
+                                {delta >= 0 ? `+${fmtUsd(delta)}` : fmtUsd(delta)}
+                              </td>
+                              <td style={{ padding: "8px", color: delta >= 0 ? "#10b981" : "#ef4444", fontWeight: 600 }}>
+                                {pct !== "N/A" ? (delta >= 0 ? `+${pct}%` : `${pct}%`) : "—"}
+                              </td>
+                              <td style={{ padding: "8px" }}>{utilStr}</td>
+                              <td style={{ padding: "8px", color: "var(--muted)", fontSize: "0.75rem" }}>{descStr}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={7} style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
+                            No comparative benchmarks recorded for this backtest run. Select a run with benchmark comparison policies enabled.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1014,7 +997,7 @@ export default function BacktestConsolePage() {
                     lineHeight: 1.5,
                   }}
                 >
-                  <strong>Mathematical Proof of Non-Dominance:</strong> In Section 28 testing, greedy local maximization (Best Expected Contribution) captured $400k by locking a vessel onto an immediate high-margin short trip, causing it to arrive too late for a subsequent high-value commitment. Phase 7 HiGHS MILP global optimization solved the full fleet multi-voyage network simultaneously, realizing <strong>$570k (+42.5% outperformance / +$170k alpha)</strong> with zero look-ahead bias.
+                  <strong>Theoretical Reference (Section 28 Non-Dominance Proof):</strong> Under the Section 28 canonical test scenario, greedy dispatch captured $400k while Phase 7 HiGHS global MILP realized $570k (+42.5% alpha). The scorecard above displays the actual calculated simulation results dynamically fetched from the decision replay engine for the active run.
                 </div>
               </div>
             )}

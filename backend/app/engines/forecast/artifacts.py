@@ -132,7 +132,7 @@ class ForecastArtifactService:
         series_id: str,
         model_version: str = "v1.0.0",
     ) -> Tuple[BaseForecastModel, Dict[str, Any]]:
-        """Loads model weights and metadata from artifact directory."""
+        """Loads model weights and metadata from artifact directory, enforcing cryptographic checksum verification."""
         artifact_dir = self.base_dir / target / series_id / model_version
         model_path = artifact_dir / "model.joblib"
         metadata_path = artifact_dir / "metadata.json"
@@ -140,9 +140,22 @@ class ForecastArtifactService:
         if not model_path.exists() or not metadata_path.exists():
             raise FileNotFoundError(f"Model artifact not found at: {artifact_dir}")
 
-        model = joblib.load(model_path)
+        # Step 1: Read metadata first
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
+
+        # Step 2: Cryptographic checksum verification prior to deserialization
+        expected_hash = metadata.get("artifact_hash")
+        if expected_hash:
+            actual_hash = compute_sha256(model_path)
+            if actual_hash != expected_hash:
+                raise ValueError(
+                    f"Artifact integrity violation: SHA-256 mismatch for {model_path}. "
+                    f"Expected {expected_hash}, computed {actual_hash}. Deserialization aborted."
+                )
+
+        # Step 3: Safe deserialization of verified artifact
+        model = joblib.load(model_path)
 
         return model, metadata
 

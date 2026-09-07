@@ -115,6 +115,12 @@ class PointInTimeSnapshotEngine:
                     "open_date": p.get("open_date", ev.event_timestamp.isoformat()),
                     "fuel_ifo_remaining": p.get("fuel_ifo_remaining", 500.0),
                     "fuel_mgo_remaining": p.get("fuel_mgo_remaining", 80.0),
+                    "consumption_laden": p.get(
+                        "consumption_laden",
+                        28.0 if p.get("vessel_class") == "Supramax"
+                        else (22.0 if p.get("vessel_class") == "Handysize"
+                              else (30.0 if p.get("vessel_class") == "Ultramax" else 35.0))
+                    ),
                     "is_available": p.get("is_available", True),
                     "last_updated": p.get("last_updated", ev.event_timestamp.isoformat()),
                 }

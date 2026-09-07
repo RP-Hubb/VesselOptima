@@ -33,6 +33,7 @@ class EmploymentReasonCode(str, Enum):
     # Commercial & Procurement dependencies
     PROCUREMENT_REQUIRED = "PROCUREMENT_REQUIRED"
     PROCUREMENT_TIMING_FAILED = "PROCUREMENT_TIMING_FAILED"
+    EMPLOYMENT_RIGHTS_NOT_ESTABLISHED = "EMPLOYMENT_RIGHTS_NOT_ESTABLISHED"
 
     # Economic & State confirmation
     ECONOMIC_DATA_UNAVAILABLE = "ECONOMIC_DATA_UNAVAILABLE"
@@ -84,6 +85,9 @@ REASON_DESCRIPTIONS = {
     ),
     EmploymentReasonCode.PROCUREMENT_TIMING_FAILED: (
         "Commercial procurement administrative lead time exceeds available days before cargo laycan start."
+    ),
+    EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED: (
+        "Alternative employment is not actionable because the decision owner does not possess established commercial control or disposition rights over the vessel."
     ),
     EmploymentReasonCode.ECONOMIC_DATA_UNAVAILABLE: (
         "Benchmark freight rate or revenue fixture unavailable; gross contribution cannot be determined."

@@ -30,6 +30,7 @@ class FeasibilityReasonCode(str, enum.Enum):
     # Port Composite Status Codes
     ORIGIN_PORT_INFEASIBLE = "ORIGIN_PORT_INFEASIBLE"
     DESTINATION_PORT_INFEASIBLE = "DESTINATION_PORT_INFEASIBLE"
+    PORT_CONSTRAINTS_NOT_RECORDED = "PORT_CONSTRAINTS_NOT_RECORDED"
 
     # Availability & Commitment Codes
     VESSEL_NOT_AVAILABLE = "VESSEL_NOT_AVAILABLE"
@@ -52,6 +53,7 @@ REASON_CODE_DESCRIPTIONS: Dict[FeasibilityReasonCode, str] = {
     FeasibilityReasonCode.VESSEL_BEAM_EXCEEDS_PORT_LIMIT: "Vessel extreme breadth (beam) exceeds the maximum permitted port/berth limit.",
     FeasibilityReasonCode.ORIGIN_PORT_INFEASIBLE: "Vessel fails one or more physical constraints at the origin loading port.",
     FeasibilityReasonCode.DESTINATION_PORT_INFEASIBLE: "Vessel fails one or more physical constraints at the destination discharge port.",
+    FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED: "Physical navigation constraints (draft, LOA, beam) are unrecorded for port; automated feasibility cannot guarantee safe passage.",
     FeasibilityReasonCode.VESSEL_NOT_AVAILABLE: "Vessel cannot position to the load port prior to the close of the cargo loading window.",
     FeasibilityReasonCode.VESSEL_COMMITMENT_CONFLICT: "Proposed voyage schedule conflicts with an immutable existing fixture or charter commitment.",
     FeasibilityReasonCode.LOADING_WINDOW_INVALID: "Vessel arrival or loading window timing is invalid or backwards.",

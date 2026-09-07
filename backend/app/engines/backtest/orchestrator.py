@@ -498,12 +498,22 @@ class BacktestOrchestrator:
                 freight_rate = snapshot.freight_rates.get(route_key, float(c.get("freight_rate_usd", 25.0)))
                 revenue = qty * freight_rate
 
-                # Voyage cost at point-in-time bunker price
+                # Voyage cost at point-in-time bunker price and vessel characteristics
                 origin = c.get("origin_port", "INPRT")
                 bunker_price = snapshot.bunker_prices.get(origin, 550.0)
-                fuel_consumed_tons = 35.0 * 12.0  # 12 days * 35t/day
+                sailing_days = float(c.get("estimated_duration_days", 12.0))
+                consumption_laden = float(
+                    v.get(
+                        "consumption_laden",
+                        28.0 if v.get("vessel_class") == "Supramax"
+                        else (22.0 if v.get("vessel_class") == "Handysize"
+                              else (30.0 if v.get("vessel_class") == "Ultramax" else 35.0))
+                    )
+                )
+                fuel_consumed_tons = consumption_laden * sailing_days
                 bunker_cost = fuel_consumed_tons * (bunker_price / 1000.0 * 800.0)
-                port_cost = 45000.0
+                # DWT-based port tariff (base call fee + deadweight tonnage charge)
+                port_cost = round(25000.0 + (dwt * 0.35), 2)
                 canal_cost = 0.0
                 voyage_cost = bunker_cost + port_cost + canal_cost
 
@@ -523,7 +533,7 @@ class BacktestOrchestrator:
                     "idle_days_saved": 5.0,
                     "avoided_idle_cost": 32500.0,
                     "start_time": snapshot.timestamp,
-                    "end_time": snapshot.timestamp + timedelta(days=12),
+                    "end_time": snapshot.timestamp + timedelta(days=sailing_days),
                 })
 
         return candidates

@@ -8,11 +8,13 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.engines.governance import (
     GovernanceService,
     get_default_decision_configuration,
 )
+from app.engines.governance.reason_codes import InstitutionalRole
 from app.schemas.governance import (
     AuditChainVerificationResponse,
     ComparePackagesRequest,
@@ -34,6 +36,31 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/governance", tags=["Decision Governance"])
 
+VALID_ROLES = {r.value for r in InstitutionalRole}
+
+
+def _assert_actor_identity(actor: str, actor_role: str) -> None:
+    """
+    Validates identity assertion and role consistency (DEF-008).
+    Enforces non-empty actor and recognized institutional role, logging runtime assertion context.
+    """
+    if not actor or not actor.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Governance actor identity assertion required: actor cannot be empty.",
+        )
+
+    clean_role = actor_role.strip().upper()
+    if clean_role not in VALID_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid actor role '{actor_role}'. Authorized institutional roles: {sorted(list(VALID_ROLES))}",
+        )
+
+    is_live = settings.runtime_mode == "LIVE"
+    mode_label = "AUTHENTICATED_LIVE" if is_live else "OFFLINE_DEMO_ASSERTION"
+    logger.info(f"[{mode_label}] Governance action requested by actor='{actor.strip()}' with role='{clean_role}'")
+
 
 @router.post("/packages", response_model=DecisionPackageResponse)
 def create_package(
@@ -41,6 +68,7 @@ def create_package(
     db: Session = Depends(get_db),
 ) -> Any:
     """Creates a new DRAFT decision package from a Phase 10 DecisionRun."""
+    _assert_actor_identity(req.created_by, req.created_by_role)
     try:
         service = GovernanceService(db)
         pkg = service.create_package_from_decision(
@@ -114,8 +142,9 @@ def submit_package(
     package_id: str,
     req: WorkflowActionRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Submits a VALIDATED package for formal review."""
+    _assert_actor_identity(req.actor, req.actor_role)
     try:
         service = GovernanceService(db)
         return service.submit_package(
@@ -136,8 +165,9 @@ def review_package(
     package_id: str,
     req: WorkflowActionRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Initiates formal review on a SUBMITTED package."""
+    _assert_actor_identity(req.actor, req.actor_role)
     try:
         service = GovernanceService(db)
         return service.review_package(
@@ -160,8 +190,9 @@ def approve_package(
     package_id: str,
     req: WorkflowActionRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Approves a decision package (enforcing separation of duties creator != approver)."""
+    _assert_actor_identity(req.actor, req.actor_role)
     try:
         service = GovernanceService(db)
         return service.approve_package(
@@ -184,8 +215,9 @@ def reject_package(
     package_id: str,
     req: RejectActionRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Rejects a decision package with mandatory reason attribution."""
+    _assert_actor_identity(req.actor, req.actor_role)
     try:
         service = GovernanceService(db)
         return service.reject_package(
@@ -208,8 +240,9 @@ def record_override(
     package_id: str,
     req: OverrideActionRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Records a human override departing from the analytical model recommendation."""
+    _assert_actor_identity(req.actor, req.actor_role)
     try:
         service = GovernanceService(db)
         return service.record_override(
@@ -233,8 +266,9 @@ def create_package_version(
     package_id: str,
     req: PackageVersionCreateRequest,
     db: Session = Depends(get_db),
-) -> Any:
+):
     """Creates a new immutable package version (e.g. V1 -> V2) with updated evidence."""
+    _assert_actor_identity(req.actor, "ANALYST")
     try:
         service = GovernanceService(db)
         return service.create_new_package_version(

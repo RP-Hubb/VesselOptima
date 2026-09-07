@@ -74,6 +74,7 @@ class EmploymentService:
                     "consumption_laden": v.consumption_laden or 20.0,
                     "consumption_ballast": v.consumption_ballast or 16.0,
                     "daily_operating_cost": getattr(v, "daily_operating_cost", 7500.0) or 7500.0,
+                    "employment_control_status": getattr(v, "employment_control_status", "ESTABLISHED") or "ESTABLISHED",
                 }
 
         # Fallback to vessels.csv
@@ -97,6 +98,7 @@ class EmploymentService:
                             "consumption_laden": float(row.get("consumption_laden", 20.0)),
                             "consumption_ballast": float(row.get("consumption_ballast", 16.0)),
                             "daily_operating_cost": float(row.get("daily_operating_cost", 7500.0)),
+                            "employment_control_status": row.get("employment_control_status", "ESTABLISHED"),
                         }
         return None
 
@@ -122,6 +124,7 @@ class EmploymentService:
                     "consumption_laden": v.consumption_laden or 20.0,
                     "consumption_ballast": v.consumption_ballast or 16.0,
                     "daily_operating_cost": getattr(v, "daily_operating_cost", 7500.0) or 7500.0,
+                    "employment_control_status": getattr(v, "employment_control_status", "ESTABLISHED") or "ESTABLISHED",
                 })
             if vessels:
                 return sorted(vessels, key=lambda x: x["id"])
@@ -145,6 +148,7 @@ class EmploymentService:
                         "consumption_laden": float(row.get("consumption_laden", 20.0)),
                         "consumption_ballast": float(row.get("consumption_ballast", 16.0)),
                         "daily_operating_cost": float(row.get("daily_operating_cost", 7500.0)),
+                        "employment_control_status": row.get("employment_control_status", "ESTABLISHED"),
                     })
         return sorted(vessels, key=lambda x: x["id"])
 
@@ -558,20 +562,31 @@ class EmploymentService:
         primary_reason_code = None
         primary_reason_desc = None
 
-        # Check 5a: Phase 4 Feasibility
+        # Check 5a: Master Spec Applicability / Authority Gate (Hard Gate)
+        # Alternative employment is actionable ONLY when decision owner has commercial control rights
+        control_status = str(vessel.get("employment_control_status", "ESTABLISHED")).upper()
+        if employment_type == "ALTERNATIVE_EMPLOYMENT" and control_status not in ("ESTABLISHED", "OWNED", "TIME_CHARTER_IN"):
+            failed_reasons.append(EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value)
+            primary_reason_code = EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
+            primary_reason_desc = (
+                "ALTERNATIVE EMPLOYMENT NOT ACTIONABLE — EMPLOYMENT RIGHTS NOT ESTABLISHED"
+            )
+
+        # Check 5b: Phase 4 Feasibility
         if not feasibility_result["is_feasible"]:
             failed_reasons.append(feasibility_result.get("primary_reason_code") or "PHYSICAL_CONSTRAINT_FAILED")
-            primary_reason_code = feasibility_result.get("primary_reason_code")
-            primary_reason_desc = feasibility_result.get("primary_reason_description")
+            if not primary_reason_code:
+                primary_reason_code = feasibility_result.get("primary_reason_code")
+                primary_reason_desc = feasibility_result.get("primary_reason_description")
 
-        # Check 5b: Timeline & Commitments
+        # Check 5c: Timeline & Commitments
         if not timeline_result["is_timeline_feasible"]:
             failed_reasons.extend(timeline_result["reason_codes"])
             if not primary_reason_code:
                 primary_reason_code = timeline_result["primary_reason_code"]
                 primary_reason_desc = describe_reason_code(primary_reason_code)
 
-        # Check 5c: Procurement Timing
+        # Check 5d: Procurement Timing
         if not proc_timing["is_timing_feasible"]:
             failed_reasons.append(EmploymentReasonCode.PROCUREMENT_TIMING_FAILED.value)
             if not primary_reason_code:
@@ -616,6 +631,7 @@ class EmploymentService:
             "cargo_id": cargo_id,
             "cargo_name": f"{cargo['commodity']} ({cargo['volume_mt']:,.0f} MT)",
             "employment_type": employment_type,
+            "employment_control_status": control_status,
             "origin_port_id": origin_port_id,
             "origin_port_name": self._get_port_name(origin_port_id),
             "destination_port_id": dest_port_id,
