@@ -33,6 +33,7 @@ from app.models.domain import (
     ScenarioEvaluation,
     ScenarioSensitivityRun,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger("vesseloptima.engines.scenarios.service")
 
@@ -90,6 +91,7 @@ class ScenarioService:
         7. Persists evaluation record if requested.
         """
         eval_date = as_of_date or DEFAULT_AS_OF_DATE
+        check_live_source_available("scenario_simulation_fleet_and_market", db=self.db)
 
         # 1. Establish baseline
         if baseline_candidates is None or baseline_result is None:
@@ -172,7 +174,7 @@ class ScenarioService:
                     },
                     assignment_deltas=[c.to_dict() for c in comparison.candidate_deltas],
                     cargo_deltas=[c.to_dict() for c in comparison.cargo_deltas],
-                    runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                    runtime_mode=get_active_runtime_mode(self.db),
                     audit_trail={
                         "baseline_hash": hash_before,
                         "config_hash": config.get_config_hash(),
@@ -273,7 +275,7 @@ class ScenarioService:
                     sweep_points=[p.to_dict() for p in sweep_result.points],
                     break_even_points=[t.to_dict() for t in sweep_result.break_even_thresholds],
                     robustness_scores=None,
-                    runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                    runtime_mode=get_active_runtime_mode(self.db),
                     audit_trail={"executed_at": datetime.now(timezone.utc).isoformat()},
                 )
                 self.db.add(rec)

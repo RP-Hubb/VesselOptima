@@ -3,8 +3,10 @@ VesselOptima — Phase 12 Maritime Data Integration & Quality Governance
 Transparent 6-Factor Quality Scoring & Freshness Engine
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.engines.data.contracts import DatasetContract
 from app.engines.data.models import QualityScoreResult, ValidationResult

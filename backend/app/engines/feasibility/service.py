@@ -43,6 +43,7 @@ from app.models.domain import (
     VesselCommitment,
     VesselProfile,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = get_logger("engines.feasibility.service")
 
@@ -85,6 +86,7 @@ class FeasibilityService:
             evidence: Dict[str, Any]
             provenance: Dict[str, Any]
         """
+        check_live_source_available("feasibility_constraints_and_positions", db=self.db)
         logger.info(f"Evaluating feasibility: cargo={cargo_id}, vessel={vessel_id}, route={route_id}")
 
         failed_checks: List[str] = []
@@ -788,7 +790,7 @@ class FeasibilityService:
                 evidence=result_dict["evidence"],
                 provenance=result_dict["provenance"],
                 evaluated_at=datetime.fromisoformat(result_dict["evaluated_at"]),
-                runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                runtime_mode=get_active_runtime_mode(self.db),
             )
             self.db.add(fc)
             self.db.commit()
@@ -822,10 +824,15 @@ class FeasibilityService:
         }
 
     def _get_provenance(self) -> Dict[str, Any]:
+        mode = get_active_runtime_mode(self.db)
         return {
-            "runtime_mode": "OFFLINE_DEMO",
-            "package_id": "demo-v1",
-            "provenance_type": "SYNTHETIC / PROXY",
-            "is_authoritative_real_world_data": False,
-            "disclaimer": "All constraints and vessel particulars are synthetic demonstration benchmarks for SIH26006.",
+            "runtime_mode": mode.value,
+            "package_id": "demo-v1" if mode == RuntimeModeEnum.OFFLINE_DEMO else "live-feed",
+            "provenance_type": "SYNTHETIC / PROXY" if mode == RuntimeModeEnum.OFFLINE_DEMO else "LIVE_FEED",
+            "is_authoritative_real_world_data": (mode == RuntimeModeEnum.LIVE),
+            "disclaimer": (
+                "All constraints and vessel particulars are synthetic demonstration benchmarks for SIH26006."
+                if mode == RuntimeModeEnum.OFFLINE_DEMO
+                else "Evaluated against live operational telemetry."
+            ),
         }

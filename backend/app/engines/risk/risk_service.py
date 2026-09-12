@@ -41,6 +41,7 @@ from app.models.domain import (
     RiskRun,
     RuntimeModeEnum,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +163,7 @@ class RiskService:
         """
         Executes a Monte Carlo uncertainty evaluation for a selected fleet allocation plan.
         """
+        check_live_source_available("risk_market_and_port_distributions", db=self.db)
         t0 = time.time()
         sim_config = config or self.get_default_risk_config()
 
@@ -377,7 +379,7 @@ class RiskService:
                             "vessel_id": a.vessel_id,
                             "vessel_name": a.vessel.name if a.vessel else f"Vessel-{a.vessel_id}",
                             "cargo_id": a.cargo_id,
-                            "cargo_name": a.cargo.name if a.cargo else (f"Cargo-{a.cargo_id}" if a.cargo_id else "Reposition"),
+                            "cargo_name": getattr(a.cargo, "commodity", getattr(a.cargo, "name", f"Cargo-{a.cargo_id}")) if a.cargo else (f"Cargo-{a.cargo_id}" if a.cargo_id else "Reposition"),
                             "expected_revenue": a.expected_revenue or 0.0,
                             "voyage_cost": a.voyage_cost or 0.0,
                             "bunker_cost": (a.voyage_cost or 0.0) * 0.48,
@@ -457,7 +459,7 @@ class RiskService:
             scenario_run_id=result.scenario_run_id,
             simulation_count=result.simulation_count,
             random_seed=result.random_seed,
-            runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+            runtime_mode=get_active_runtime_mode(self.db),
             simulation_parameters=config.to_dict(),
             status="COMPLETED",
             execution_time_seconds=round(exec_time, 4),

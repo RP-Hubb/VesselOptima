@@ -36,6 +36,7 @@ from app.engines.decision.models import (
     DecisionTradeoffItem,
 )
 from app.engines.decision.priorities import generate_prioritized_actions
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 from app.engines.decision.reason_codes import (
     ActionPriority,
     ActionStatus,
@@ -93,6 +94,7 @@ class DecisionService:
         Consumes Phase 7, 8, 9 inputs and generates auditable recommendations.
         """
         start_time = time.time()
+        check_live_source_available("fleet_telemetry_and_market_rates", db=self.db)
         if thresholds is None:
             thresholds = DecisionThresholds()
 
@@ -115,7 +117,7 @@ class DecisionService:
                         "vessel_name": a.vessel.name if a.vessel else f"Vessel-{a.vessel_id}",
                         "cargo_id": a.cargo_id,
                         "cargo_name": getattr(a.cargo, 'commodity', getattr(a.cargo, 'name', f"Cargo-{a.cargo_id}")) if a.cargo else ("Repositioning" if not a.cargo_id else f"Cargo-{a.cargo_id}"),
-                        "contribution": a.net_contribution,
+                        "contribution": getattr(a, "gross_contribution", getattr(a, "net_contribution", 0.0)),
                     })
 
         # 2. Fetch or compute Phase 9 Risk Run
@@ -511,7 +513,7 @@ class DecisionService:
             output_hash=result.output_hash,
             status="COMPLETED",
             execution_time_seconds=result.execution_time_seconds,
-            runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+            runtime_mode=get_active_runtime_mode(self.db),
         )
         self.db.add(db_run)
         self.db.flush()

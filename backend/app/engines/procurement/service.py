@@ -28,6 +28,7 @@ from app.engines.procurement.strategies import (
     ProcurementStrategyEngine,
 )
 from app.models.domain import CargoParcel, Port, ProcurementConfig, ProcurementEvaluation, RuntimeModeEnum
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = get_logger("engines.procurement.service")
 
@@ -197,6 +198,7 @@ class ProcurementService:
         Evaluates candidate procurement strategies for a cargo requirement.
         Strictly consumes Phase 4 Feasibility and Phase 3 Forecasts.
         """
+        check_live_source_available("procurement_fixtures_and_market_rates", db=self.db)
         cargo = self.get_cargo(cargo_id)
         if not cargo:
             raise ValueError(f"Cargo requirement {cargo_id} not found.")
@@ -240,7 +242,7 @@ class ProcurementService:
                         },
                         provenance=eval_res.get("provenance"),
                         evaluated_at=datetime.now(timezone.utc),
-                        runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                        runtime_mode=get_active_runtime_mode(self.db),
                     )
                     self.db.add(eval_record)
                     self.db.commit()

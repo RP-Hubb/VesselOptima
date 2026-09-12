@@ -81,13 +81,14 @@ class NoActionStrategy(BenchmarkStrategy):
         total_idle_cost = 0.0
 
         for vid, vdata in snapshot.vessels.items():
-            daily_idle = 6500.0
-            idle_cost = daily_idle * 10.0  # 10 days evaluation window
+            daily_opex = float(vdata.get("daily_operating_cost", 7500.0))
+            idle_cost = daily_opex * 10.0  # 10 days evaluation window at vessel-specific daily OPEX
             total_idle_cost += idle_cost
             assignments.append({
                 "vessel_id": vdata.get("vessel_id", vid),
                 "cargo_id": None,
                 "status": "IDLE",
+                "daily_idle_rate": daily_opex,
                 "expected_contribution_usd": -idle_cost,
                 "realized_contribution_usd": -idle_cost,
             })
@@ -121,32 +122,50 @@ class ContinueCurrentEmploymentStrategy(BenchmarkStrategy):
         candidate_pool: List[Dict[str, Any]],
         historical_actuals: Optional[List[Dict[str, Any]]] = None,
     ) -> BenchmarkDecisionResult:
-        committed_vessels = {str(c.get("vessel_id")) for c in snapshot.commitments}
+        commitments_by_vessel = {}
+        for c in snapshot.commitments:
+            commitments_by_vessel[str(c.get("vessel_id"))] = c
+
         assignments = []
         total_contrib = 0.0
         assigned_count = 0
 
         for vid, vdata in snapshot.vessels.items():
             v_id_int = vdata.get("vessel_id", vid)
-            if str(vid) in committed_vessels:
-                # Earn nominal baseline contractual return
-                fixture_contrib = 180000.0
+            daily_opex = float(vdata.get("daily_operating_cost", 7500.0))
+
+            if str(vid) in commitments_by_vessel:
+                comm = commitments_by_vessel[str(vid)]
+                cargo_id = comm.get("cargo_id")
+                cargo = snapshot.cargoes.get(str(cargo_id)) if cargo_id else None
+                if cargo:
+                    qty = float(cargo.get("quantity_mt", 50000.0))
+                    fr = float(cargo.get("freight_rate_usd", 20.0))
+                    rev = qty * fr
+                    # Contractual voyage duration ~ 15 days
+                    voyage_cost = daily_opex * 15.0 + 35000.0
+                    fixture_contrib = rev - voyage_cost
+                else:
+                    dwt = float(vdata.get("dwt", 55000.0))
+                    fixture_contrib = round(dwt * 18.50 - (daily_opex * 15.0 + 35000.0), 2)
+
                 total_contrib += fixture_contrib
                 assigned_count += 1
                 assignments.append({
                     "vessel_id": v_id_int,
-                    "cargo_id": "COMMITTED",
+                    "cargo_id": cargo_id or "COMMITTED",
                     "status": "COMMITTED_CONTINUATION",
                     "expected_contribution_usd": fixture_contrib,
                     "realized_contribution_usd": fixture_contrib,
                 })
             else:
-                idle_cost = 65000.0
+                idle_cost = daily_opex * 10.0
                 total_contrib -= idle_cost
                 assignments.append({
                     "vessel_id": v_id_int,
                     "cargo_id": None,
                     "status": "IDLE",
+                    "daily_idle_rate": daily_opex,
                     "expected_contribution_usd": -idle_cost,
                     "realized_contribution_usd": -idle_cost,
                 })
@@ -157,10 +176,10 @@ class ContinueCurrentEmploymentStrategy(BenchmarkStrategy):
             strategy_name=self.name,
             decision_timestamp=snapshot.timestamp,
             assignments=assignments,
-            expected_contribution_usd=total_contrib,
-            realized_contribution_usd=total_contrib,
+            expected_contribution_usd=round(total_contrib, 2),
+            realized_contribution_usd=round(total_contrib, 2),
             vessel_utilization_pct=round(utilization, 1),
-            details={"committed_vessels_count": len(committed_vessels)},
+            details={"committed_vessels_count": len(commitments_by_vessel)},
         )
 
 
@@ -196,25 +215,27 @@ class FirstFeasibleStrategy(BenchmarkStrategy):
             if vid not in assigned_vessels and cid not in assigned_cargoes:
                 assigned_vessels.add(vid)
                 assigned_cargoes.add(cid)
-                contrib = float(c.get("expected_contribution_usd", c.get("net_contribution", 120000.0)))
+                contrib = float(c.get("expected_contribution_usd", c.get("net_contribution", 0.0)))
                 total_contrib += contrib
                 assignments.append({
-                    "vessel_id": int(vid) if vid.isdigit() else vid,
-                    "cargo_id": int(cid) if cid.isdigit() else cid,
+                    "vessel_id": int(vid) if str(vid).isdigit() else vid,
+                    "cargo_id": int(cid) if str(cid).isdigit() else cid,
                     "status": "ASSIGNED",
                     "expected_contribution_usd": contrib,
-                    "realized_contribution_usd": contrib * 0.95,  # Minor operational drag
+                    "realized_contribution_usd": contrib,
                 })
 
-        # Add idle vessels
+        # Add idle vessels using vessel-specific OPEX
         for vid, vdata in snapshot.vessels.items():
             if str(vid) not in assigned_vessels:
-                idle_cost = 65000.0
+                daily_opex = float(vdata.get("daily_operating_cost", 7500.0))
+                idle_cost = daily_opex * 10.0
                 total_contrib -= idle_cost
                 assignments.append({
                     "vessel_id": vdata.get("vessel_id", vid),
                     "cargo_id": None,
                     "status": "IDLE",
+                    "daily_idle_rate": daily_opex,
                     "expected_contribution_usd": -idle_cost,
                     "realized_contribution_usd": -idle_cost,
                 })
@@ -225,8 +246,8 @@ class FirstFeasibleStrategy(BenchmarkStrategy):
             strategy_name=self.name,
             decision_timestamp=snapshot.timestamp,
             assignments=assignments,
-            expected_contribution_usd=total_contrib,
-            realized_contribution_usd=total_contrib * 0.95,
+            expected_contribution_usd=round(total_contrib, 2),
+            realized_contribution_usd=round(total_contrib, 2),
             vessel_utilization_pct=round(util, 1),
             details={"assigned_count": len(assigned_vessels)},
         )
@@ -251,7 +272,6 @@ class BestExpectedContributionStrategy(BenchmarkStrategy):
         candidate_pool: List[Dict[str, Any]],
         historical_actuals: Optional[List[Dict[str, Any]]] = None,
     ) -> BenchmarkDecisionResult:
-        # Sort descending by expected contribution
         sorted_candidates = sorted(
             candidate_pool,
             key=lambda c: float(c.get("expected_contribution_usd", c.get("net_contribution", 0.0))),
@@ -273,22 +293,24 @@ class BestExpectedContributionStrategy(BenchmarkStrategy):
                     assigned_cargoes.add(cid)
                     total_contrib += contrib
                     assignments.append({
-                        "vessel_id": int(vid) if vid.isdigit() else vid,
-                        "cargo_id": int(cid) if cid.isdigit() else cid,
+                        "vessel_id": int(vid) if str(vid).isdigit() else vid,
+                        "cargo_id": int(cid) if str(cid).isdigit() else cid,
                         "status": "ASSIGNED",
                         "expected_contribution_usd": contrib,
-                        "realized_contribution_usd": contrib * 0.98,
+                        "realized_contribution_usd": contrib,
                     })
 
-        # Add remaining unassigned vessels as idle
+        # Add remaining unassigned vessels as idle with vessel-specific OPEX
         for vid, vdata in snapshot.vessels.items():
             if str(vid) not in assigned_vessels:
-                idle_cost = 65000.0
+                daily_opex = float(vdata.get("daily_operating_cost", 7500.0))
+                idle_cost = daily_opex * 10.0
                 total_contrib -= idle_cost
                 assignments.append({
                     "vessel_id": vdata.get("vessel_id", vid),
                     "cargo_id": None,
                     "status": "IDLE",
+                    "daily_idle_rate": daily_opex,
                     "expected_contribution_usd": -idle_cost,
                     "realized_contribution_usd": -idle_cost,
                 })
@@ -299,8 +321,8 @@ class BestExpectedContributionStrategy(BenchmarkStrategy):
             strategy_name=self.name,
             decision_timestamp=snapshot.timestamp,
             assignments=assignments,
-            expected_contribution_usd=total_contrib,
-            realized_contribution_usd=total_contrib * 0.98,
+            expected_contribution_usd=round(total_contrib, 2),
+            realized_contribution_usd=round(total_contrib, 2),
             vessel_utilization_pct=round(util, 1),
             details={"assigned_count": len(assigned_vessels)},
         )
@@ -309,8 +331,8 @@ class BestExpectedContributionStrategy(BenchmarkStrategy):
 class HistoricalActualOutcomeBenchmark(BenchmarkStrategy):
     """
     Outcome Benchmark: Represents what human operators actually chartered historically.
-    Note: In accordance with Build Spec Section 4, this is an ex-post outcome benchmark,
-    not an algorithmic decision strategy.
+    When no authentic operator charter log is present, explicitly declares synthetic
+    benchmark assumption provenance to prevent misrepresentation.
     """
     def __init__(self):
         super().__init__(
@@ -328,41 +350,58 @@ class HistoricalActualOutcomeBenchmark(BenchmarkStrategy):
         actuals = historical_actuals or []
         total_realized = 0.0
         assignments = []
+        is_synthetic = False
 
         if actuals:
             for item in actuals:
-                contrib = float(item.get("realized_contribution_usd", item.get("contribution", 350000.0)))
+                contrib = float(item.get("realized_contribution_usd", item.get("contribution", 0.0)))
                 total_realized += contrib
                 assignments.append({
                     "vessel_id": item.get("vessel_id", 1),
-                    "cargo_id": item.get("cargo_id", 1),
+                    "cargo_id": item.get("cargo_id"),
                     "status": "HISTORICAL_ACTUAL",
                     "expected_contribution_usd": contrib,
                     "realized_contribution_usd": contrib,
                 })
+            util = (len(actuals) / len(snapshot.vessels) * 100.0) if snapshot.vessels else 60.0
+            provenance = "AUTHENTIC_OPERATOR_LOG"
         else:
-            # If no explicit historical log provided, compute nominal historical average
+            is_synthetic = True
+            provenance = "SYNTHETIC_BENCHMARK_ASSUMPTION"
             for vid, vdata in snapshot.vessels.items():
-                nominal = 80000.0
-                total_realized += nominal
+                daily_opex = float(vdata.get("daily_operating_cost", 7500.0))
+                vclass = str(vdata.get("vessel_class", "Supramax"))
+                daily_tce = 22000.0 if "Cape" in vclass else (14000.0 if "Supra" in vclass else 11000.0)
+                nominal_margin = round((daily_tce - daily_opex) * 10.0, 2)
+                total_realized += nominal_margin
                 assignments.append({
                     "vessel_id": vdata.get("vessel_id", vid),
                     "cargo_id": None,
-                    "status": "HISTORICAL_ACTUAL",
-                    "expected_contribution_usd": nominal,
-                    "realized_contribution_usd": nominal,
+                    "status": "HISTORICAL_ACTUAL_SYNTHETIC",
+                    "expected_contribution_usd": nominal_margin,
+                    "realized_contribution_usd": nominal_margin,
                 })
+            util = 60.0
 
-        util = 60.0  # Industry standard benchmark utilization
         return BenchmarkDecisionResult(
             strategy_type=self.strategy_type,
             strategy_name=self.name,
             decision_timestamp=snapshot.timestamp,
             assignments=assignments,
-            expected_contribution_usd=total_realized,
-            realized_contribution_usd=total_realized,
-            vessel_utilization_pct=util,
-            details={"is_ex_post_outcome_baseline": True},
+            expected_contribution_usd=round(total_realized, 2),
+            realized_contribution_usd=round(total_realized, 2),
+            vessel_utilization_pct=round(util, 1),
+            details={
+                "is_ex_post_outcome_baseline": True,
+                "provenance": provenance,
+                "is_synthetic_assumption": is_synthetic,
+                "has_authentic_actuals": not is_synthetic,
+                "disclaimer": (
+                    "No authentic operator charter log present in historical dataset; "
+                    "values derived from vessel class TCE benchmark assumptions."
+                    if is_synthetic else "Authentic operator execution log verified."
+                ),
+            },
         )
 
 

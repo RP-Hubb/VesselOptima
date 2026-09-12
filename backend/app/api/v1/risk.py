@@ -206,7 +206,7 @@ def get_risk_run(run_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
             "vessel_id": a.vessel_id,
             "vessel_name": a.vessel.name if a.vessel else f"Vessel-{a.vessel_id}",
             "cargo_id": a.cargo_id,
-            "cargo_name": a.cargo.name if a.cargo else (f"Cargo-{a.cargo_id}" if a.cargo_id else "Reposition"),
+            "cargo_name": getattr(a.cargo, "commodity", getattr(a.cargo, "name", f"Cargo-{a.cargo_id}")) if a.cargo else (f"Cargo-{a.cargo_id}" if a.cargo_id else "Reposition"),
             "expected_net_contribution": a.expected_net_contribution,
             "contribution_std": a.contribution_std,
             "loss_probability": a.loss_probability,

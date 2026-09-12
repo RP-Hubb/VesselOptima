@@ -42,6 +42,7 @@ def evaluate_port_constraints(
     vessel_loa: float,
     vessel_beam: float,
     constraints: List[Any],  # List of PortConstraint ORM models or dicts
+    fail_on_unrecorded: bool = False,
 ) -> PortCheckResult:
     """
     Evaluates all physical constraints for a single port role (Origin or Destination).
@@ -65,6 +66,7 @@ def evaluate_port_constraints(
     draft_failed = False
     loa_failed = False
     beam_failed = False
+    checked_rules = set()
 
     for c in constraints:
         # Support both SQLAlchemy model and dictionary access
@@ -83,6 +85,7 @@ def evaluate_port_constraints(
 
         # 1. Draft Check
         if rule_type == "MAX_DRAFT":
+            checked_rules.add("MAX_DRAFT")
             evidence = {
                 "constraint": "MAX_DRAFT",
                 "role": role,
@@ -117,6 +120,7 @@ def evaluate_port_constraints(
 
         # 2. LOA Check
         elif rule_type == "MAX_LOA":
+            checked_rules.add("MAX_LOA")
             evidence = {
                 "constraint": "MAX_LOA",
                 "role": role,
@@ -149,6 +153,7 @@ def evaluate_port_constraints(
 
         # 3. Beam Check
         elif rule_type == "MAX_BEAM":
+            checked_rules.add("MAX_BEAM")
             evidence = {
                 "constraint": "MAX_BEAM",
                 "role": role,
@@ -173,6 +178,51 @@ def evaluate_port_constraints(
                 evidence["status"] = "PASS"
                 evidence["clearance_beam_m"] = round(limit_val - vessel_beam, 2)
             result.checks[rule_key] = evidence
+
+    # Explicitly record unrecorded mandatory navigation dimensions (DEF-003 partial constraint hardening)
+    mandatory_specs = [
+        ("MAX_DRAFT", vessel_draft, "draft", FeasibilityReasonCode.VESSEL_DRAFT_EXCEEDS_PORT_LIMIT),
+        ("MAX_LOA", vessel_loa, "loa", FeasibilityReasonCode.VESSEL_LOA_EXCEEDS_PORT_LIMIT),
+        ("MAX_BEAM", vessel_beam, "beam", FeasibilityReasonCode.VESSEL_BEAM_EXCEEDS_PORT_LIMIT),
+    ]
+
+    for rule_type, req_val, dim_name, fail_code in mandatory_specs:
+        rule_key = f"{role.lower()}_{rule_type.lower()}"
+        if rule_type not in checked_rules:
+            evidence = {
+                "constraint": rule_type,
+                "role": role,
+                "port_id": port_id,
+                "port_name": port_name,
+                f"required_{dim_name}": round(req_val, 2),
+                f"permitted_{dim_name}": None,
+                "unit": "M",
+                "status": "NOT_RECORDED",
+                "reason_code": FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED.value,
+                "message": f"Physical {rule_type} limit is not recorded for {port_name} ({role}); clearance unverified.",
+            }
+            result.checks[rule_key] = evidence
+            result.warnings.append(
+                f"[{role} - {port_name}] {rule_type} constraint not recorded in berth schedule; clearance unverified."
+            )
+
+            # Global physical threshold validation: absurdly oversized vessels (e.g. LOA > 365m, beam > 65m)
+            # exceeding the largest dry bulk vessel ever built (Valemax 362m) fail unconditionally
+            if (rule_type == "MAX_LOA" and req_val > 365.0) or (rule_type == "MAX_BEAM" and req_val > 65.0):
+                result.is_pass = False
+                evidence["status"] = "FAIL"
+                evidence["message"] = (
+                    f"Vessel {dim_name.upper()} ({req_val:.1f}m) exceeds global maximum physical limit "
+                    f"for commercial bulk berths (365m LOA / 65m Beam); unrecorded clearance cannot pass."
+                )
+                result.failed_checks.append(rule_key)
+                if fail_code not in result.reason_codes:
+                    result.reason_codes.append(fail_code)
+            elif fail_on_unrecorded:
+                result.is_pass = False
+                result.failed_checks.append(rule_key)
+                if FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED not in result.reason_codes:
+                    result.reason_codes.append(FeasibilityReasonCode.PORT_CONSTRAINTS_NOT_RECORDED)
 
     # Add composite port failure code if any constraint failed
     if not result.is_pass:

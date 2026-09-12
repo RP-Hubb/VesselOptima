@@ -44,11 +44,11 @@ export default function ProcurementPage() {
     setError(null);
     Promise.all([getCargoRequirements(), getProcurementProfiles()])
       .then(([cargoItems, profileRes]) => {
-        setCargos(cargoItems);
-        if (cargoItems.length > 0) {
+        setCargos(cargoItems || []);
+        if (cargoItems && cargoItems.length > 0) {
           setSelectedCargoId(cargoItems[0].id);
         }
-        setProfiles(profileRes.profiles);
+        setProfiles(profileRes.profiles || []);
         if (profileRes.default_profile_id) {
           setSelectedProfileId(profileRes.default_profile_id);
         }
@@ -97,7 +97,7 @@ export default function ProcurementPage() {
 
   // Active cargo requirement
   const currentCargo = useMemo(() => {
-    return cargos.find((c) => c.id === selectedCargoId) || null;
+    return (cargos || []).find((c) => c.id === selectedCargoId) || null;
   }, [cargos, selectedCargoId]);
 
   // Active profile object
@@ -112,21 +112,23 @@ export default function ProcurementPage() {
         description: "User-defined procurement lead time stages",
       };
     }
-    return profiles.find((p) => p.profile_id === selectedProfileId) || null;
+    return (profiles || []).find((p) => p.profile_id === selectedProfileId) || null;
   }, [profiles, selectedProfileId, customStages]);
 
   // Selected strategy evaluation object
   const selectedStrategy = useMemo(() => {
     if (!comparisonData) return null;
-    return comparisonData.strategies.find((s) => s.strategy_type === selectedStrategyType) || comparisonData.strategies[0] || null;
+    const strats = comparisonData.strategies || [];
+    return strats.find((s) => s.strategy_type === selectedStrategyType) || strats[0] || null;
   }, [comparisonData, selectedStrategyType]);
 
   // Filtered strategies for the table
   const displayedStrategies = useMemo(() => {
     if (!comparisonData) return [];
-    if (filterMode === "FEASIBLE") return comparisonData.strategies.filter((s) => s.status === "FEASIBLE");
-    if (filterMode === "INFEASIBLE") return comparisonData.strategies.filter((s) => s.status === "INFEASIBLE");
-    return comparisonData.strategies;
+    const strats = comparisonData.strategies || [];
+    if (filterMode === "FEASIBLE") return strats.filter((s) => s.status === "FEASIBLE");
+    if (filterMode === "INFEASIBLE") return strats.filter((s) => s.status === "INFEASIBLE");
+    return strats;
   }, [comparisonData, filterMode]);
 
   // Demonstration test presets

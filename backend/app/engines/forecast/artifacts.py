@@ -75,6 +75,7 @@ class ForecastArtifactService:
         metrics_data = {
             "selected_model": model.name,
             "selected_metrics": asdict(best_eval.metrics),
+            "residuals": [round(float(r), 4) for r in best_eval.residuals],
             "all_candidates": {
                 k: asdict(v.metrics) for k, v in all_evals.items()
             },
@@ -100,6 +101,7 @@ class ForecastArtifactService:
             "validation_folds": 3,
             "selected_model": model.name,
             "selected_metrics": asdict(best_eval.metrics),
+            "residuals": [round(float(r), 4) for r in best_eval.residuals],
             "provenance": data_info.get("provenance", "SYNTHETIC"),
             "source_dataset": f"{target}/{series_id}",
             "package_id": "demo-v1",
@@ -144,15 +146,19 @@ class ForecastArtifactService:
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
 
-        # Step 2: Cryptographic checksum verification prior to deserialization
+        # Step 2: Cryptographic checksum verification prior to deserialization (fail-closed)
         expected_hash = metadata.get("artifact_hash")
-        if expected_hash:
-            actual_hash = compute_sha256(model_path)
-            if actual_hash != expected_hash:
-                raise ValueError(
-                    f"Artifact integrity violation: SHA-256 mismatch for {model_path}. "
-                    f"Expected {expected_hash}, computed {actual_hash}. Deserialization aborted."
-                )
+        if not expected_hash:
+            raise ValueError(
+                f"Artifact integrity violation: Missing mandatory 'artifact_hash' in {metadata_path}. "
+                f"Unverified or unsigned artifacts cannot be deserialized."
+            )
+        actual_hash = compute_sha256(model_path)
+        if actual_hash != expected_hash:
+            raise ValueError(
+                f"Artifact integrity violation: SHA-256 mismatch for {model_path}. "
+                f"Expected {expected_hash}, computed {actual_hash}. Deserialization aborted."
+            )
 
         # Step 3: Safe deserialization of verified artifact
         model = joblib.load(model_path)

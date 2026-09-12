@@ -40,6 +40,7 @@ from app.models.domain import (
     BacktestTimeline,
     RuntimeModeEnum,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger("backtest.service")
 
@@ -148,6 +149,7 @@ class BacktestingService:
         Coordinates full backtest simulation, persists results immutably, and returns DB model.
         """
         run_code = f"RUN-BT-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
+        check_live_source_available("historical_event_stream", db=self.db)
 
         # 1. Ensure configuration exists
         config = self.create_configuration(
@@ -177,7 +179,7 @@ class BacktestingService:
             decision_frequency=frequency.value,
             dataset_versions=config.dataset_versions,
             status=BacktestRunStatus.RUNNING.value,
-            runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+            runtime_mode=get_active_runtime_mode(self.db),
             seed=seed,
             software_version="1.0.0",
             solver_version="HiGHS-1.5.1",

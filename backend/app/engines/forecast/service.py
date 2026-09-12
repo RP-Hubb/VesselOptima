@@ -26,10 +26,14 @@ logger = get_logger("engines.forecast.service")
 class ForecastService:
     """Master service providing high-level forecasting capabilities."""
 
-    def __init__(self, db: Optional[Session] = None):
+    def __init__(
+        self,
+        db: Optional[Session] = None,
+        artifact_service: Optional[ForecastArtifactService] = None,
+    ):
         self.db = db
         self.data_service = ForecastDataService(db=db)
-        self.artifact_service = ForecastArtifactService()
+        self.artifact_service = artifact_service or ForecastArtifactService()
         self.uncertainty_service = ForecastUncertaintyService()
         self.evaluator = WalkForwardEvaluator(n_folds=3, horizon_days=30)
 
@@ -124,21 +128,23 @@ class ForecastService:
         with open(metrics_path, "r", encoding="utf-8") as f:
             metrics_data = json.load(f)
 
-        # Compute empirical 80% and 95% intervals based on out-of-sample RMSE
-        # (Standard normal quantile approximation from out-of-sample validation RMSE)
-        val_rmse = float(metrics_data["selected_metrics"]["rmse"])
-        # Synthetic residual spread based on out-of-sample validation error
-        np.random.seed(20260905)
-        simulated_residuals = list(np.random.normal(0, val_rmse, 100))
+        # Load authentic empirical validation residuals from the walk-forward evaluation artifact
+        residuals = metrics_data.get("residuals")
+        if not residuals or not isinstance(residuals, list):
+            raise ValueError(
+                f"Artifact metrics for '{series_id}' is missing authentic empirical residuals. "
+                "Re-training with walk-forward validation is required."
+            )
+        validation_residuals = [float(r) for r in residuals]
 
         lower_80, upper_80 = self.uncertainty_service.compute_prediction_intervals(
             point_forecasts=point_forecasts,
-            validation_residuals=simulated_residuals,
+            validation_residuals=validation_residuals,
             coverage=0.80,
         )
         lower_95, upper_95 = self.uncertainty_service.compute_prediction_intervals(
             point_forecasts=point_forecasts,
-            validation_residuals=simulated_residuals,
+            validation_residuals=validation_residuals,
             coverage=0.95,
         )
 

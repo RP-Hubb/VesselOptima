@@ -39,6 +39,7 @@ from app.models.domain import (
     VesselCommitment,
     VesselProfile,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger("vesseloptima.engines.optimization.service")
 
@@ -82,6 +83,7 @@ class OptimizationService:
         solves via HiGHS, and optionally persists results.
         """
         eval_date = as_of_date or DEFAULT_AS_OF_DATE
+        check_live_source_available("vessel_fleet_and_cargo_pool", db=self.db)
 
         # 1. Obtain candidates
         upstream_rejected: list[dict[str, Any]] = []
@@ -260,7 +262,7 @@ class OptimizationService:
                 solver_version=result.solver_metadata.get("solver_version", "HiGHS"),
                 solver_status=result.status.value,
                 solve_time_seconds=result.solve_time_seconds,
-                runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                runtime_mode=get_active_runtime_mode(self.db),
                 data_context_id="demo-v1",
                 offline_package_id="demo-v1",
                 objective_decomposition=decomp.to_dict(),
@@ -297,7 +299,7 @@ class OptimizationService:
                     voyage_days=assign.voyage_days,
                     assignment_metadata=assign.assignment_metadata,
                     trade_off_notes=assign.trade_off_explanation,
-                    runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                    runtime_mode=get_active_runtime_mode(self.db),
                 )
                 self.db.add(db_assign)
 

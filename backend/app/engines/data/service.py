@@ -54,6 +54,7 @@ from app.models.domain import (
     QuarantineRecord,
     RuntimeModeEnum,
 )
+from app.services.runtime import get_active_runtime_mode
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,7 @@ class DataGovernanceService:
                 freshness_status=quality_result.freshness_status.value,
                 record_count=len(normalized_records),
                 created_by=actor,
-                runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                runtime_mode=get_active_runtime_mode(self.db),
             )
             self.db.add(db_dataset)
             self.db.flush()

@@ -112,9 +112,9 @@
 *   **EXISTING FILES:** `backend/app/models/domain.py` (`BacktestConfiguration`, `BacktestRun`, `BacktestSnapshot`, `BacktestDecision`, `BacktestOutcome`, `BacktestBenchmark`, `BacktestBenchmarkResult`, `BacktestMetric`, `BacktestAttribution`, `BacktestLeakage`, `BacktestTimeline`), `backend/alembic/versions/13b4c5d6e7f8_add_backtesting_tables.py`, `backend/app/engines/backtest/` (`reason_codes.py`, `events.py`, `snapshot.py`, `leakage.py`, `timeline.py`, `benchmarks.py`, `outcome.py`, `metrics.py`, `attribution.py`, `orchestrator.py`, `service.py`, `__init__.py`), `backend/app/schemas/backtest.py`, `backend/app/api/v1/backtest.py`, `backend/tests/test_backtesting.py` (44/44 PASS), `frontend/src/app/backtest/page.tsx`, `frontend/src/types/api.ts`, `frontend/src/lib/api.ts`, `docs/PHASE_13_SPECIFICATION.md`, `docs/PHASE_13_IMPLEMENTATION.md`, `docs/PHASE_13_BACKTEST_METHODOLOGY.md`, `docs/PHASE_13_STATUS.md`.
 *   **MISSING:** None
 *   **BROKEN:** None
-*   **TESTS:** Phase 13: 44/44 PASS | Hardening Verification: 17/17 PASS | Full Platform Regression: 293/293 PASS (100% green)
-*   **HARDENING STATUS:** DEF-001 through DEF-011 fully remediated, verified, and audited. UNCONDITIONAL GO for production deployment.
-*   **NEXT ACTION:** Complete. Platform baseline fully verified and ready for Phase 14 (Fleet Carbon & CII / FuelEU Compliance Engine).
+*   **TESTS:** Phase 13: 44/44 PASS | Hardening Verification: 31/31 PASS | Full Platform Regression: 307/307 PASS (100% green).
+*   **HARDENING STATUS:** DEF-001 through DEF-011 and Adversarial Audit Findings 0 through 7 fully remediated, verified, and audited. CONDITIONAL GO for commercial decision-support deployment (certified for OFFLINE_DEMO; LIVE mode strictly fails closed pending operational remote adapter integration in Phase 14).
+*   **NEXT ACTION:** Complete. Platform baseline fully hardened, verified, and ready for Phase 14 (Fleet Carbon & CII / FuelEU Compliance Engine).
 *   **DEPENDENCIES:** Phase 12 (Data Governance), Phase 11 (Decision Governance), Phase 10 (Decision Intelligence), Phase 9 (Risk), Phase 8 (Scenarios), Phase 7 (HiGHS MILP Optimizer).
 
 

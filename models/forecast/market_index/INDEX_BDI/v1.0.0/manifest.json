@@ -2,16 +2,16 @@
   "files": [
     {
       "file": "model.joblib",
-      "sha256": "edb0fe3018a936cec88c18498a53f37c8565cb5f7197daebeb5aec2caf3e6ed6"
+      "sha256": "1271d2543f7d298894172a4a304a957a92c559e6926caf2722805ecab2455d60"
     },
     {
       "file": "metadata.json",
-      "sha256": "85541460326980084fd6cb7a38349cba060a865d4e990237c86d450cefe03f29"
+      "sha256": "9a80388b4894ebfd085b8a48410e1ebc2a42e548801a4a3b3e2e7d0784766527"
     },
     {
       "file": "metrics.json",
-      "sha256": "5bd116e31ca816a4f6f6b5c8d18c0348a5b44120006c220193a19eb8b378ba84"
+      "sha256": "e2e43ad823981e7aa6828648883b1b6a2d3012b0777fb810dc96e83e0d0a825f"
     }
   ],
-  "created_at": "2026-09-07T06:04:21.198665+00:00"
+  "created_at": "2026-09-08T02:12:47.066397+00:00"
 }

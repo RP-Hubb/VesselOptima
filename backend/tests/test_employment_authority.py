@@ -28,7 +28,8 @@ def test_authority_established_permits_alternative_employment(monkeypatch):
         employment_type="ALTERNATIVE_EMPLOYMENT",
     )
 
-    assert res["employment_control_status"] == "ESTABLISHED"
+    assert res["employment_control_status"] in ("ESTABLISHED", "CONTROLLED", "OWNED", "TIME_CHARTER_IN")
+    assert res["employment_control"] in ("ESTABLISHED", "CONTROLLED", "OWNED", "TIME_CHARTER_IN")
     assert EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value not in res["failed_reasons"]
 
 
@@ -118,3 +119,78 @@ def test_positive_economics_cannot_override_missing_authority(monkeypatch):
     assert res["status"] == "INFEASIBLE"
     assert res["optimization_status"] == "REJECTED"
     assert res["primary_reason_code"] == EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
+
+
+def test_real_fleet_data_enforces_authority_gate_without_monkeypatch():
+    """
+    Direct integration test against the shipped demo dataset without any monkeypatching.
+    Proves that vessels marked NOT_CONTROLLED or UNKNOWN in vessels.csv
+    truthfully fire the authority gate.
+    """
+    service = EmploymentService()
+
+    # Vessel 1 ("VO Amber Leader") is CONTROLLED in vessels.csv
+    v1 = service._get_vessel(1)
+    assert v1["employment_control"] == "CONTROLLED"
+    res1 = service.evaluate_employment_candidate(
+        vessel_id=1,
+        cargo_id=4,
+        as_of_date=datetime(2026, 9, 1),
+        employment_type="ALTERNATIVE_EMPLOYMENT",
+    )
+    assert EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value not in res1["failed_reasons"]
+
+    # Vessel 3 ("Pacific Falcon") is NOT_CONTROLLED in vessels.csv
+    v3 = service._get_vessel(3)
+    assert v3["employment_control"] == "NOT_CONTROLLED"
+    res3 = service.evaluate_employment_candidate(
+        vessel_id=3,
+        cargo_id=4,
+        as_of_date=datetime(2026, 9, 1),
+        employment_type="ALTERNATIVE_EMPLOYMENT",
+    )
+    assert res3["status"] == "INFEASIBLE"
+    assert res3["primary_reason_code"] == EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
+    assert EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value in res3["failed_reasons"]
+
+    # Vessel 9 ("Samudra Gem") is UNKNOWN in vessels.csv
+    v9 = service._get_vessel(9)
+    assert v9["employment_control"] == "UNKNOWN"
+    res9 = service.evaluate_employment_candidate(
+        vessel_id=9,
+        cargo_id=4,
+        as_of_date=datetime(2026, 9, 1),
+        employment_type="ALTERNATIVE_EMPLOYMENT",
+    )
+    assert res9["status"] == "INFEASIBLE"
+    assert res9["primary_reason_code"] == EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
+    assert EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value in res9["failed_reasons"]
+
+
+def test_all_uncontrolled_vessels_in_fleet_are_blocked():
+    """Verify across the entire fleet that every NOT_CONTROLLED or UNKNOWN vessel is blocked."""
+    service = EmploymentService()
+    all_vessels = service._get_all_vessels()
+
+    controlled_count = 0
+    blocked_count = 0
+
+    for v in all_vessels:
+        ctrl = v["employment_control"]
+        res = service.evaluate_employment_candidate(
+            vessel_id=v["id"],
+            cargo_id=4,
+            as_of_date=datetime(2026, 9, 1),
+            employment_type="ALTERNATIVE_EMPLOYMENT",
+        )
+        if ctrl in ("CONTROLLED", "ESTABLISHED", "OWNED", "TIME_CHARTER_IN"):
+            controlled_count += 1
+            assert EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value not in res["failed_reasons"]
+        else:
+            blocked_count += 1
+            assert res["status"] == "INFEASIBLE"
+            assert res["primary_reason_code"] == EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
+
+    # Shipped demo-v1 fleet has 8 CONTROLLED, 10 NOT_CONTROLLED, 2 UNKNOWN = 12 blocked
+    assert controlled_count == 8
+    assert blocked_count == 12

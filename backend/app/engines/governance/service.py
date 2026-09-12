@@ -59,6 +59,7 @@ from app.models.domain import (
     RiskRun,
     RuntimeModeEnum,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class GovernanceService:
         """
         Creates an initial DRAFT Decision Package from a stored Phase 10 DecisionRun.
         """
+        check_live_source_available("governance_decision_context", db=self.db)
         # Fetch decision run
         dec_run = None
         if self.db:
@@ -172,7 +174,7 @@ class GovernanceService:
                 package_hash=pkg_data["package_hash"],
                 created_by_role=created_by_role,
                 created_by=created_by,
-                runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                runtime_mode=get_active_runtime_mode(self.db),
             )
             self.db.add(db_pkg)
             self.db.flush()
@@ -770,7 +772,7 @@ class GovernanceService:
                 package_hash=pkg_data["package_hash"],
                 created_by=pkg_data["created_by"],
                 created_by_role=pkg_data["created_by_role"],
-                runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                runtime_mode=get_active_runtime_mode(self.db),
             )
             self.db.add(db_pkg)
             self.db.flush()

@@ -29,9 +29,11 @@ from app.models.domain import (
     IdleAssessment,
     Port,
     Route,
+    RuntimeModeEnum,
     VesselCommitment,
     VesselProfile,
 )
+from app.services.runtime import get_active_runtime_mode, check_live_source_available
 
 logger = logging.getLogger("vesseloptima.engines.employment.service")
 
@@ -53,12 +55,36 @@ class EmploymentService:
 
     # ── Internal Data Resolution Helpers ──────────────────────────────
 
+    def _extract_employment_control(self, obj_or_row: Any) -> str:
+        """Accurately extracts employment control status from ORM model or CSV row without masking non-controlled vessels."""
+        if isinstance(obj_or_row, dict):
+            status = obj_or_row.get("employment_control_status")
+            ctrl = obj_or_row.get("employment_control")
+            # If both are present and one indicates restricted/uncontrolled, prioritize the restriction (fail-closed)
+            if status is not None and ctrl is not None:
+                status_str = str(status).upper()
+                ctrl_str = str(ctrl).upper()
+                if status_str not in ("ESTABLISHED", "CONTROLLED", "OWNED", "TIME_CHARTER_IN"):
+                    return status_str
+                if ctrl_str not in ("ESTABLISHED", "CONTROLLED", "OWNED", "TIME_CHARTER_IN"):
+                    return ctrl_str
+                return ctrl_str
+            val = status if status is not None else ctrl
+        else:
+            val = getattr(obj_or_row, "employment_control_status", None)
+            if val is None:
+                val = getattr(obj_or_row, "employment_control", None)
+        if hasattr(val, "value"):
+            val = val.value
+        return str(val or "UNKNOWN").upper()
+
     def _get_vessel(self, vessel_id: int) -> Optional[Dict[str, Any]]:
-        """Resolves vessel profile from DB or canonical CSV."""
+        """Resolves vessel physical specifications and daily cost."""
         if self.db:
-            v = self.db.get(VesselProfile, vessel_id)
+            v = self.db.query(VesselProfile).filter(VesselProfile.id == vessel_id).first()
             if v:
                 vclass_name = v.vessel_class.name if v.vessel_class else "UNKNOWN"
+                control_status = self._extract_employment_control(v)
                 return {
                     "id": v.id,
                     "name": v.name,
@@ -74,7 +100,8 @@ class EmploymentService:
                     "consumption_laden": v.consumption_laden or 20.0,
                     "consumption_ballast": v.consumption_ballast or 16.0,
                     "daily_operating_cost": getattr(v, "daily_operating_cost", 7500.0) or 7500.0,
-                    "employment_control_status": getattr(v, "employment_control_status", "ESTABLISHED") or "ESTABLISHED",
+                    "employment_control": control_status,
+                    "employment_control_status": control_status,
                 }
 
         # Fallback to vessels.csv
@@ -83,6 +110,7 @@ class EmploymentService:
             with open(csv_file, "r", encoding="utf-8") as f:
                 for row in csv.DictReader(f):
                     if int(row.get("id", 0)) == vessel_id:
+                        control_status = self._extract_employment_control(row)
                         return {
                             "id": int(row["id"]),
                             "name": row.get("name", f"Vessel {vessel_id}"),
@@ -98,7 +126,8 @@ class EmploymentService:
                             "consumption_laden": float(row.get("consumption_laden", 20.0)),
                             "consumption_ballast": float(row.get("consumption_ballast", 16.0)),
                             "daily_operating_cost": float(row.get("daily_operating_cost", 7500.0)),
-                            "employment_control_status": row.get("employment_control_status", "ESTABLISHED"),
+                            "employment_control": control_status,
+                            "employment_control_status": control_status,
                         }
         return None
 
@@ -109,6 +138,7 @@ class EmploymentService:
             db_vessels = self.db.query(VesselProfile).all()
             for v in db_vessels:
                 vclass_name = v.vessel_class.name if v.vessel_class else "UNKNOWN"
+                control_status = self._extract_employment_control(v)
                 vessels.append({
                     "id": v.id,
                     "name": v.name,
@@ -124,7 +154,8 @@ class EmploymentService:
                     "consumption_laden": v.consumption_laden or 20.0,
                     "consumption_ballast": v.consumption_ballast or 16.0,
                     "daily_operating_cost": getattr(v, "daily_operating_cost", 7500.0) or 7500.0,
-                    "employment_control_status": getattr(v, "employment_control_status", "ESTABLISHED") or "ESTABLISHED",
+                    "employment_control": control_status,
+                    "employment_control_status": control_status,
                 })
             if vessels:
                 return sorted(vessels, key=lambda x: x["id"])
@@ -133,6 +164,7 @@ class EmploymentService:
         if csv_file.exists():
             with open(csv_file, "r", encoding="utf-8") as f:
                 for row in csv.DictReader(f):
+                    control_status = self._extract_employment_control(row)
                     vessels.append({
                         "id": int(row["id"]),
                         "name": row.get("name", f"Vessel {row['id']}"),
@@ -148,7 +180,8 @@ class EmploymentService:
                         "consumption_laden": float(row.get("consumption_laden", 20.0)),
                         "consumption_ballast": float(row.get("consumption_ballast", 16.0)),
                         "daily_operating_cost": float(row.get("daily_operating_cost", 7500.0)),
-                        "employment_control_status": row.get("employment_control_status", "ESTABLISHED"),
+                        "employment_control": control_status,
+                        "employment_control_status": control_status,
                     })
         return sorted(vessels, key=lambda x: x["id"])
 
@@ -332,7 +365,7 @@ class EmploymentService:
             "alternative_candidates_generated": len(all_vessels) * 3,  # Candidate search space
             "provenance": {
                 "package_id": "demo-v1",
-                "data_mode": "OFFLINE_DEMO",
+                "data_mode": get_active_runtime_mode(self.db).value,
                 "evaluated_at": datetime.now(timezone.utc).isoformat(),
             },
         }
@@ -490,6 +523,7 @@ class EmploymentService:
         4. Chronological Timeline & Commitment Conflict Check
         5. Transparent Cost & Gross Contribution Economics
         """
+        check_live_source_available("vessel_positions_and_employment_rights", db=self.db)
         vessel = self._get_vessel(vessel_id)
         if not vessel:
             raise ValueError(f"Vessel {vessel_id} not found.")
@@ -564,12 +598,14 @@ class EmploymentService:
 
         # Check 5a: Master Spec Applicability / Authority Gate (Hard Gate)
         # Alternative employment is actionable ONLY when decision owner has commercial control rights
-        control_status = str(vessel.get("employment_control_status", "ESTABLISHED")).upper()
-        if employment_type == "ALTERNATIVE_EMPLOYMENT" and control_status not in ("ESTABLISHED", "OWNED", "TIME_CHARTER_IN"):
+        control_status = self._extract_employment_control(vessel)
+        AUTHORIZED_EMPLOYMENT_CONTROLS = {"CONTROLLED", "ESTABLISHED", "OWNED", "TIME_CHARTER_IN"}
+        if employment_type == "ALTERNATIVE_EMPLOYMENT" and control_status not in AUTHORIZED_EMPLOYMENT_CONTROLS:
             failed_reasons.append(EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value)
             primary_reason_code = EmploymentReasonCode.EMPLOYMENT_RIGHTS_NOT_ESTABLISHED.value
             primary_reason_desc = (
-                "ALTERNATIVE EMPLOYMENT NOT ACTIONABLE — EMPLOYMENT RIGHTS NOT ESTABLISHED"
+                f"ALTERNATIVE EMPLOYMENT NOT ACTIONABLE — EMPLOYMENT RIGHTS NOT ESTABLISHED "
+                f"(Vessel control status: '{control_status}')"
             )
 
         # Check 5b: Phase 4 Feasibility
@@ -631,6 +667,7 @@ class EmploymentService:
             "cargo_id": cargo_id,
             "cargo_name": f"{cargo['commodity']} ({cargo['volume_mt']:,.0f} MT)",
             "employment_type": employment_type,
+            "employment_control": control_status,
             "employment_control_status": control_status,
             "origin_port_id": origin_port_id,
             "origin_port_name": self._get_port_name(origin_port_id),
@@ -659,7 +696,7 @@ class EmploymentService:
             "economics": econ_result,
             "provenance": {
                 "package_id": "demo-v1",
-                "data_mode": "OFFLINE_DEMO",
+                "data_mode": get_active_runtime_mode(self.db).value,
                 "evaluated_at": datetime.now(timezone.utc).isoformat(),
                 "feasibility_engine_ref": "Phase 4 FeasibilityService",
                 "procurement_engine_ref": "Phase 5 ProcurementService",
@@ -695,7 +732,7 @@ class EmploymentService:
                     procurement_detail=result_payload["procurement"],
                     provenance=result_payload["provenance"],
                     created_at=datetime.now(timezone.utc),
-                    runtime_mode=RuntimeModeEnum.OFFLINE_DEMO,
+                    runtime_mode=get_active_runtime_mode(self.db),
                 )
                 self.db.add(rec)
                 self.db.commit()
@@ -778,7 +815,7 @@ class EmploymentService:
             "assessments": assessments,
             "provenance": {
                 "package_id": "demo-v1",
-                "data_mode": "OFFLINE_DEMO",
+                "data_mode": get_active_runtime_mode(self.db).value,
                 "evaluated_at": datetime.now(timezone.utc).isoformat(),
             },
         }
@@ -839,7 +876,7 @@ class EmploymentService:
             ),
             "provenance": {
                 "package_id": "demo-v1",
-                "data_mode": "OFFLINE_DEMO",
+                "data_mode": get_active_runtime_mode(self.db).value,
                 "evaluated_at": datetime.now(timezone.utc).isoformat(),
             },
         }

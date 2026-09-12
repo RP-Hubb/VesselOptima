@@ -114,3 +114,55 @@ class RuntimeService:
             pkgs = self.discover_offline_packages()
             return pkgs[0] if pkgs else "demo-v1"
         return None
+
+
+def get_active_runtime_mode(db: Session | None = None) -> RuntimeModeEnum:
+    """
+    Resolves the currently active RuntimeModeEnum.
+    Checks the latest RuntimeModeEvent audit record in the database first,
+    then falls back to configured system settings.
+    """
+    if db is not None:
+        try:
+            event = (
+                db.query(RuntimeModeEvent)
+                .order_by(RuntimeModeEvent.selected_at.desc())
+                .first()
+            )
+            if event and event.mode:
+                return event.mode
+        except Exception:
+            pass
+
+    mode_val = getattr(settings, "runtime_mode", RuntimeMode.OFFLINE_DEMO)
+    if hasattr(mode_val, "value"):
+        mode_val = mode_val.value
+    return RuntimeModeEnum(str(mode_val))
+
+
+ACTIVE_LIVE_SOURCES: set[str] = set()
+
+
+def register_live_source(source: str) -> None:
+    """Registers an active, verified live telemetry adapter."""
+    ACTIVE_LIVE_SOURCES.add(source)
+
+
+def unregister_live_source(source: str) -> None:
+    """Removes a live telemetry adapter."""
+    ACTIVE_LIVE_SOURCES.discard(source)
+
+
+def check_live_source_available(source: str, db: Session | None = None) -> None:
+    """
+    Ensures that when running in LIVE mode, live data feeds are operational.
+    If running in LIVE mode without live feeds configured, raises LiveSourceUnavailableError (HTTP 503).
+    """
+    from app.core.exceptions import LiveSourceUnavailableError
+
+    mode = get_active_runtime_mode(db)
+    if mode == RuntimeModeEnum.LIVE:
+        if "*" not in ACTIVE_LIVE_SOURCES and source not in ACTIVE_LIVE_SOURCES:
+            # Phase 1-13 has no live external feeds connected by default; fail closed per Master Spec
+            raise LiveSourceUnavailableError(source=source)
+

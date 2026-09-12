@@ -77,7 +77,7 @@ export default function ForecastPage() {
   // Group catalog by target
   const groupedTargets = useMemo(() => {
     const map = new Map<string, SeriesCatalogItem[]>();
-    catalog.forEach((item) => {
+    (catalog || []).forEach((item) => {
       const list = map.get(item.target) || [];
       list.push(item);
       map.set(item.target, list);
@@ -87,7 +87,7 @@ export default function ForecastPage() {
 
   // Active series metadata
   const currentSeriesInfo = useMemo(() => {
-    return catalog.find((i) => i.series_id === selectedSeriesId);
+    return (catalog || []).find((i) => i.series_id === selectedSeriesId);
   }, [catalog, selectedSeriesId]);
 
   // SVG Chart Computations
@@ -293,7 +293,7 @@ export default function ForecastPage() {
           <select
             value={selectedSeriesId}
             onChange={(e) => {
-              const item = catalog.find((i) => i.series_id === e.target.value);
+              const item = (catalog || []).find((i) => i.series_id === e.target.value);
               if (item) {
                 setSelectedTarget(item.target);
                 setSelectedSeriesId(item.series_id);

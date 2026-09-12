@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.services.runtime import get_active_runtime_mode
 from app.engines.feasibility.service import FeasibilityService
 from app.engines.procurement.cost_model import calculate_expected_procurement_costs
 from app.engines.procurement.forecast_signal import (
@@ -110,6 +111,7 @@ class ProcurementStrategyEngine:
         Evaluates a specific strategy against a cargo requirement.
         Strictly consumes Phase 4 for vessel feasibility.
         """
+        runtime_mode_val = get_active_runtime_mode(self.db).value
         strat_def = STRATEGY_DEFINITIONS.get(strategy_type.upper(), STRATEGY_DEFINITIONS["SPOT"])
 
         cargo_id = cargo["id"]
@@ -193,7 +195,7 @@ class ProcurementStrategyEngine:
                 "cost_summary": cost_breakdown,
                 "provenance": {
                     "package_id": "demo-v1",
-                    "data_mode": "OFFLINE_DEMO",
+                    "data_mode": runtime_mode_val,
                     "feasibility_reference": "Phase 4 FeasibilityEngine",
                     "forecast_reference": f"Phase 3 ForecastService ({series_id})",
                 },
@@ -234,7 +236,7 @@ class ProcurementStrategyEngine:
                 "cost_summary": cost_breakdown,
                 "provenance": {
                     "package_id": "demo-v1",
-                    "data_mode": "OFFLINE_DEMO",
+                    "data_mode": runtime_mode_val,
                     "feasibility_reference": "Phase 4 FeasibilityEngine",
                     "forecast_reference": f"Phase 3 ForecastService ({series_id})",
                 },
@@ -302,7 +304,7 @@ class ProcurementStrategyEngine:
             },
             "provenance": {
                 "package_id": "demo-v1",
-                "data_mode": "OFFLINE_DEMO",
+                "data_mode": runtime_mode_val,
                 "feasibility_reference": "Phase 4 FeasibilityEngine",
                 "forecast_reference": f"Phase 3 ForecastService ({series_id})",
                 "procurement_profile": profile.profile_id,

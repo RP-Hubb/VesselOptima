@@ -84,12 +84,12 @@ export default function FeasibilityPage() {
 
   // Active cargo item
   const currentCargo = useMemo(() => {
-    return cargos.find((c) => c.id === selectedCargoId) || null;
+    return (cargos || []).find((c) => c.id === selectedCargoId) || null;
   }, [cargos, selectedCargoId]);
 
   // Filtered fleet vessels
   const displayedVessels = useMemo(() => {
-    if (!fleetData) return [];
+    if (!fleetData || !fleetData.vessels) return [];
     if (filterMode === "FEASIBLE") return fleetData.vessels.filter((v) => v.is_feasible);
     if (filterMode === "INFEASIBLE") return fleetData.vessels.filter((v) => !v.is_feasible);
     return fleetData.vessels;
